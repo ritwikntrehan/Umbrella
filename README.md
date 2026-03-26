@@ -27,7 +27,7 @@ All artifacts are stored under a local data root with architecture-aligned folde
 - `raw/`
 - `clean/`
 - `features/`
-- `published/` (reserved for future phases)
+- `published/` (contains bulletin-ready + editorial artifacts consumed by the web layer for grants)
 
 Default data root:
 
@@ -177,3 +177,49 @@ Covers:
 - Real database persistence
 - Expansion to non-grants channels
 - Broad architecture redesign
+
+## Web Integration (Grants Editorial Artifact -> Site)
+
+The web app now reads local grants artifacts and renders real content (not placeholder copy) for:
+
+- homepage grants highlight module (`/`)
+- grants channel page (`/channels/grants`)
+
+### What is rendered
+
+From the latest grants editorial artifact (`latest.editorial.json`) and related bulletin metadata:
+
+- channel identity
+- bulletin period/date
+- refined top line
+- editorial summary
+- refined section content (what changed / why it matters / custom CTA)
+- optional watchlist/data snapshot sections
+- minimal provenance snippet
+
+### Fallback behavior
+
+If no editorial artifact exists yet, both pages render a useful empty-state prompt with the commands needed to generate artifacts locally.
+
+### Generate data before viewing the site
+
+```bash
+npm run pilot:grants
+npm run pilot:grants:bulletin
+npm run pilot:grants:editorial
+npm run dev -w @umbrella/web
+```
+
+Then open:
+
+- `http://localhost:3000/`
+- `http://localhost:3000/channels/grants`
+
+### Current real vs placeholder scope
+
+- **Real now:** grants channel artifact consumption + rendering on home and grants page
+- **Still placeholder:** other channel pages and umbrella cross-channel synthesis
+
+### Next likely step
+
+Add a narrow local artifact index/read service that supports listing prior grants bulletins (basic history/archive view) without introducing a database.

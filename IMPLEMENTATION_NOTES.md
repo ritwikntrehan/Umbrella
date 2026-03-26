@@ -28,7 +28,7 @@ Data root defaults to `data/grants-pilot` and follows the architecture-aligned d
 - `raw/` — source check, ingestion run, raw assets
 - `clean/` — normalized records
 - `features/` — change events (`latest.change-event.json` + run-scoped event)
-- `published/` — reserved (not used yet)
+- `published/` — bulletin-ready and editorial artifacts (`latest.*` + run-scoped files)
 
 `UMBRELLA_DATA_DIR` can override the data root for local runs/tests.
 
@@ -193,3 +193,37 @@ Focused tests now cover:
 ### Next likely step
 
 Introduce an optional, pluggable LLM refinement adapter for grants editorial synthesis that consumes the same instruction contract while keeping deterministic fallback as the default runtime path.
+
+
+## Web consumption slice added (this step)
+
+The web layer now consumes the latest local grants editorial artifact and renders it directly.
+
+### Integrated pages
+
+- `/` now includes a grants highlight module populated from real artifact fields
+- `/channels/grants` now renders the latest grants editorial sections
+
+### Data inputs
+
+- `published/<source_id>/latest.editorial.json` (primary)
+- `published/<source_id>/latest.bulletin-ready.json` (period/fallback metadata support)
+
+No database was introduced; reads are local-file based and aligned with existing artifact conventions.
+
+### Empty / partial handling
+
+- missing editorial artifact -> clear prompt with local generation commands
+- missing optional fields -> section-level fallback copy
+- missing optional sections -> section remains visible with empty-state message
+
+### What remains intentionally deferred
+
+- umbrella multi-channel synthesis
+- non-grants channel artifact rendering
+- search/archive UX
+- publishing/distribution workflow
+
+### Next likely step
+
+Introduce a minimal grants bulletin listing view (latest + small history) using existing local artifact files only.
