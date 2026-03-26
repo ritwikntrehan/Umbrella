@@ -14,13 +14,13 @@ The system exists to produce source-traceable bulletins and highlights that conv
 ### In scope
 - Scheduled source checks and change detection.
 - Deterministic ingestion, normalization, feature computation, and event generation.
-- AI-assisted drafting for editor-reviewed bulletin content.
+- AI-assisted drafting for bulletin-ready editorial content.
 - Publication to channel pages + umbrella homepage.
 - Structured lead capture tied to bulletin/channel context.
 
 ### Out of scope
 - Real-time trading or real-time alerting guarantees.
-- Autonomous decision-making without human editorial approval.
+- Autonomous decision-making without source-traceable evidence.
 - Chat-style user interaction as a primary product surface.
 - AI-only extraction of authoritative numeric facts.
 
@@ -38,7 +38,7 @@ The build and runtime pipeline uses these exact stage names:
 
 Rules:
 - Stages 1–6 are deterministic and reproducible.
-- Stage 7 is AI-assisted but human approved.
+- Stage 7 generates bulletin-ready editorial artifacts.
 - Stages 8–9 are operational delivery and conversion steps.
 
 ## 4) System Architecture
@@ -87,7 +87,7 @@ Any new object type must be added first in `DATA_CONTRACTS.md` before code use.
 - Suggesting section ordering.
 - Suggesting highlight wording.
 
-Hard rule: AI output is publishable only after human review and valid citations to deterministic objects.
+Hard rule: published assertions must retain valid citations to deterministic objects.
 
 ## 7) Operating Model
 - Cadence: weekly bulletin baseline per channel; higher check frequency where configured in `ChannelConfig`.
@@ -98,8 +98,8 @@ Hard rule: AI output is publishable only after human review and valid citations 
 - Use a monorepo with strict package boundaries.
 - Enforce schema validation at stage boundaries.
 - Enforce lineage completeness from `BulletinSection`/`Highlight` to `RawAsset`.
-- Block publish if publishability criteria fail.
-- Treat all stage outputs as versioned records.
+- Keep publication metadata explicit for modular distribution (`slug`, `canonical_url`, `publish_timestamp`, `render_version`, `content_hash`, `distribution_targets`).
+- Treat published bulletins as fixed artifacts once generated.
 
 ## 9) Open Questions
 1. Should `FeatureSnapshot` payloads remain in PostgreSQL JSONB, or move to parquet-first storage once volume grows?

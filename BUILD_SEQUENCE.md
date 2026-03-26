@@ -4,7 +4,7 @@
 1. Build deterministic pipeline stages before expanding editorial/UI features.
 2. Keep contracts stable; change only with explicit version updates.
 3. Ship one fully traceable channel before multi-channel scale.
-4. Do not run channels in production without publishability gates.
+4. Keep publication metadata complete for distribution and audit.
 
 ## 2) Canonical Stage Sequence (authoritative)
 All phases implement this exact stage order:
@@ -66,13 +66,13 @@ Stage coverage: 7–9.
 
 Deliverables:
 - `Bulletin`, `BulletinSection`, and `Highlight` assembly.
-- Human approval workflow.
+- Publication metadata generation (`slug`, `canonical_url`, `publish_timestamp`, `render_version`, `content_hash`, `distribution_targets`).
 - Publish artifact generation for channel page + umbrella highlight feed.
-- `ContactInquiry` capture with channel context.
+- `ContactInquiry` capture with nullable `channel_id` for umbrella submissions.
 
 Exit criteria:
 - Two consecutive weekly pilot bulletins published from live runs.
-- Every published statement passes lineage and publishability checks.
+- Every published statement passes lineage and publication integrity checks.
 - Inquiry routing to CRM works end to end.
 
 ### Phase 4 — Shared Primitive Hardening (2–3 weeks)
@@ -122,7 +122,7 @@ Exit criteria:
 A release to production requires:
 1. Green contract and lineage tests.
 2. Successful staging end-to-end run.
-3. Editorial sign-off for template/prompt changes.
+3. Publication metadata completeness checks pass.
 4. No unresolved severity-1 data integrity defects.
 
 ## 6) Open Questions
