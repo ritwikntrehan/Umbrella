@@ -22,7 +22,11 @@
     "pilot:trade:source-check": "npm run pilot:trade:source-check -w @umbrella/jobs",
     "pilot:trade:bulletin": "npm run pilot:trade:bulletin -w @umbrella/jobs",
     "pilot:trade:editorial": "npm run pilot:trade:editorial -w @umbrella/jobs",
-    "test:web": "npm run test -w @umbrella/web"
+    "test:web": "npm run test -w @umbrella/web",
+    "pilot:market-signals": "npm run pilot:market-signals -w @umbrella/jobs",
+    "pilot:market-signals:source-check": "npm run pilot:market-signals:source-check -w @umbrella/jobs",
+    "pilot:market-signals:bulletin": "npm run pilot:market-signals:bulletin -w @umbrella/jobs",
+    "pilot:market-signals:editorial": "npm run pilot:market-signals:editorial -w @umbrella/jobs"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

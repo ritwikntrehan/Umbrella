@@ -1,7 +1,8 @@
-import { grantsChannelConfig, tradeChannelConfig } from "@umbrella/channel-config";
+import { grantsChannelConfig, marketSignalsChannelConfig, tradeChannelConfig } from "@umbrella/channel-config";
 import { renderCard, renderLayout } from "@umbrella/ui";
 import { readLatestGrantsEditorialForWeb } from "../lib/grants-artifact-reader.js";
 import { formatBulletinPeriod } from "../lib/grants-render-helpers.js";
+import { readLatestMarketSignalsEditorialForWeb } from "../lib/market-signals-artifact-reader.js";
 import { readLatestTradeEditorialForWeb } from "../lib/trade-artifact-reader.js";
 
 function renderHighlight(params: {
@@ -34,9 +35,13 @@ function renderHighlight(params: {
 export function homePage(): string {
   const grants = readLatestGrantsEditorialForWeb();
   const trade = readLatestTradeEditorialForWeb();
+  const marketSignals = readLatestMarketSignalsEditorialForWeb();
 
   const body = [
-    renderCard("Umbrella Platform", "Visible deterministic slices now include grants and trade end-to-end rendering."),
+    renderCard(
+      "Umbrella Platform",
+      "Visible deterministic slices now include grants, trade, and market-signals end-to-end rendering."
+    ),
     renderHighlight({
       label: grants.channelLabel,
       pageHref: "/channels/grants",
@@ -55,9 +60,18 @@ export function homePage(): string {
       summary: trade.editorialSummary,
       cta: trade.refinedCustomWorkCta?.body
     }),
+    renderHighlight({
+      label: marketSignals.channelLabel,
+      pageHref: "/channels/market-signals",
+      fallbackReason: marketSignals.fallbackReason,
+      period: formatBulletinPeriod(marketSignals),
+      topLine: marketSignals.refinedTopLine?.body,
+      summary: marketSignals.editorialSummary,
+      cta: marketSignals.refinedCustomWorkCta?.body
+    }),
     renderCard(
       "Other Channels",
-      `Still placeholder-only while ${grantsChannelConfig.displayName} and ${tradeChannelConfig.displayName} are active web-integrated pilots.`
+      `Still placeholder-only while ${grantsChannelConfig.displayName}, ${tradeChannelConfig.displayName}, and ${marketSignalsChannelConfig.displayName} are active web-integrated pilots.`
     )
   ].join("\n");
 

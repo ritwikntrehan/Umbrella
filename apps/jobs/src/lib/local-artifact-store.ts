@@ -7,6 +7,8 @@ import type { GrantsBulletinReadyArtifact } from "../runners/grants-bulletin-ass
 import type { GrantsEditorialArtifact } from "../runners/grants-editorial-transformer.js";
 import type { TradeBulletinReadyArtifact } from "../runners/trade-bulletin-assembler.js";
 import type { TradeEditorialArtifact } from "../runners/trade-editorial-transformer.js";
+import type { MarketSignalsBulletinReadyArtifact } from "../runners/market-signals-bulletin-assembler.js";
+import type { MarketSignalsEditorialArtifact } from "../runners/market-signals-editorial-transformer.js";
 
 interface ArtifactEnvelope<T> {
   sourceId: string;
@@ -14,8 +16,11 @@ interface ArtifactEnvelope<T> {
   payload: T;
 }
 
-export type BulletinReadyArtifact = GrantsBulletinReadyArtifact | TradeBulletinReadyArtifact;
-export type EditorialArtifact = GrantsEditorialArtifact | TradeEditorialArtifact;
+export type BulletinReadyArtifact =
+  | GrantsBulletinReadyArtifact
+  | TradeBulletinReadyArtifact
+  | MarketSignalsBulletinReadyArtifact;
+export type EditorialArtifact = GrantsEditorialArtifact | TradeEditorialArtifact | MarketSignalsEditorialArtifact;
 
 export interface ArtifactStore {
   rootDir: string;

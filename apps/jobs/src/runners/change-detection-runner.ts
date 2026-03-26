@@ -17,6 +17,7 @@ export interface DeterministicChangeEvent {
 
 export type GrantsChangeEvent = DeterministicChangeEvent;
 export type TradeChangeEvent = DeterministicChangeEvent;
+export type MarketSignalsChangeEvent = DeterministicChangeEvent;
 
 function hashRecord(record: NormalizedRecord): string {
   return createHash("sha256").update(JSON.stringify(record.payload)).digest("hex");
