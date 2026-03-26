@@ -10,7 +10,9 @@
     "lint": "echo 'No lint rules configured for @umbrella/jobs yet.'",
     "pilot:grants": "tsx src/index.ts grants-pilot",
     "pilot:grants:source-check": "tsx src/index.ts source-check",
-    "test": "tsx --test src/__tests__/*.test.ts"
+    "test": "tsx --test src/__tests__/*.test.ts",
+    "pilot:grants:bulletin": "tsx src/index.ts grants-bulletin",
+    "pilot:grants:bulletin:inspect": "tsx src/index.ts inspect-grants-bulletin"
   },
   "dependencies": {
     "@umbrella/channel-config": "0.1.0",
