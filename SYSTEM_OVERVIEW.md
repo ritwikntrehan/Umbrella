@@ -1,302 +1,106 @@
 # SYSTEM_OVERVIEW.md
 
 ## 1) Purpose
-The Umbrella Intelligence Platform is a multi-channel intelligence publishing system designed to:
-- detect meaningful external changes,
-- preserve source evidence,
-- deterministically transform source data into structured internal records,
-- generate editorial outputs (bulletins and highlights), and
-- convert reader attention into custom-work leads.
+Umbrella is a scheduled, deterministic intelligence publishing platform for five channels:
+- `grants` (Grant / Funding Intelligence)
+- `trade` (Trade / Tariff / Sourcing Intelligence)
+- `manufacturing` (Manufacturing / Supplier Ecosystem Intelligence)
+- `econ` (Economic / Labor / Market Signals Intelligence)
+- `ma` (M&A / Business Assessment Intelligence)
 
-The platform is optimized for **high-signal publishing workflows**, not high-interaction user workflows.
+The system exists to produce source-traceable bulletins and highlights that convert into qualified custom-work inquiries.
 
-## 2) What the Platform Is / Is Not
+## 2) Scope Boundaries
+### In scope
+- Scheduled source checks and change detection.
+- Deterministic ingestion, normalization, feature computation, and event generation.
+- AI-assisted drafting for bulletin-ready editorial content.
+- Publication to channel pages + umbrella homepage.
+- Structured lead capture tied to bulletin/channel context.
 
-### Is
-- A shared data and publishing platform powering five channel-specific intelligence products.
-- A scheduled monitoring and update-detection system with explicit provenance.
-- A deterministic ETL + feature computation engine with an editorial AI layer on top.
-- A low-interaction content product (bulletins, structured pages, inquiry forms).
+### Out of scope
+- Real-time trading or real-time alerting guarantees.
+- Autonomous decision-making without source-traceable evidence.
+- Chat-style user interaction as a primary product surface.
+- AI-only extraction of authoritative numeric facts.
 
-### Is not
-- A generalized chat assistant or heavy interactive SaaS app.
-- A real-time streaming trading system.
-- An autonomous decision-making engine.
-- An AI-first data extraction system for source-of-truth numerical facts.
+## 3) Canonical Pipeline Stages (must match all docs)
+The build and runtime pipeline uses these exact stage names:
+1. **Source Registration**
+2. **Source Check**
+3. **Deterministic Ingestion**
+4. **Normalization**
+5. **Feature Computation**
+6. **Change Event Generation**
+7. **Editorial Assembly & Review**
+8. **Publish & Distribution**
+9. **Lead Capture**
 
-## 3) Primary User Journeys
-1. **Bulletin Reader**
-   - Lands on umbrella homepage.
-   - Sees top cross-channel highlights.
-   - Clicks through to channel bulletin.
-   - Uses contact CTA for custom analysis.
+Rules:
+- Stages 1–6 are deterministic and reproducible.
+- Stage 7 generates bulletin-ready editorial artifacts.
+- Stages 8–9 are operational delivery and conversion steps.
 
-2. **Channel Analyst/Operator (internal)**
-   - Reviews detected changes and ingestion results.
-   - Approves or edits AI-assisted draft bulletin sections.
-   - Publishes channel bulletin on schedule.
-
-3. **Data Browser**
-   - Navigates channel data pages for entities/events.
-   - Uses filters (geography, sector, date, event type).
-   - Exports or submits inquiry for deeper custom work.
-
-4. **Lead Requester**
-   - Submits structured inquiry through channel or umbrella CTA.
-   - Inquiry is routed/tagged by channel, topic, and urgency.
-
-## 4) High-Level Platform Architecture
-The architecture is split into two strict zones:
-
-- **Deterministic pipeline (source-of-truth zone)**
-  - source monitoring
-  - ingestion
-  - normalization/cleaning
-  - feature engineering and change detection
-
-- **Editorial intelligence zone (AI-assisted narrative zone)**
-  - synthesis and ranking support
-  - bulletin drafting
-  - highlight generation
-  - never authoritative for numeric truth without deterministic backing
-
-### ASCII Architecture Diagram
+## 4) System Architecture
 ```text
-                      +-----------------------------+
-                      |    External Data Sources    |
-                      | (APIs, PDFs, web pages, DB) |
-                      +--------------+--------------+
-                                     |
-                          scheduled checks / polling
-                                     v
-+------------------+      +--------------------+      +------------------------+
-| Source Registry  +----->+ Source Monitoring  +----->+ Change Detection Queue |
-| + channel tags   |      | (fingerprints)     |      | (meaningful updates)   |
-+------------------+      +--------------------+      +-----------+------------+
-                                                                yes |
-                                                                    v
-                                                        +-----------------------+
-                                                        | Deterministic Ingest  |
-                                                        | + Raw Asset Preserve  |
-                                                        +-----------+-----------+
-                                                                    |
-                                                                    v
-                                                        +-----------------------+
-                                                        | Normalize / Clean      |
-                                                        | (schema contracts)     |
-                                                        +-----------+-----------+
-                                                                    |
-                                                                    v
-                                                        +-----------------------+
-                                                        | Feature Layer          |
-                                                        | + entity links + diffs |
-                                                        +-----------+-----------+
-                                                                    |
-                                            +-----------------------+-----------------------+
-                                            |                                               |
-                                            v                                               v
-                                  +--------------------+                        +----------------------+
-                                  | Editorial AI Layer |                        | Structured Data Pages |
-                                  | (summaries,drafts) |                        | (channel/umbrella)    |
-                                  +---------+----------+                        +-----------+----------+
-                                            |                                               |
-                                            v                                               |
-                                  +-----------------------+                                 |
-                                  | Bulletin Publisher    +---------------------------------+
-                                  | (channel + umbrella)  |
-                                  +-----------+-----------+
-                                              |
-                                              v
-                                  +-----------------------+
-                                  | Contact/Lead Capture  |
-                                  | (CRM pipeline)        |
-                                  +-----------------------+
+External Sources
+  -> (1) Source Registration [Source]
+  -> (2) Source Check [SourceCheck]
+  -> (3) Deterministic Ingestion [IngestionRun, RawAsset]
+  -> (4) Normalization [NormalizedRecord]
+  -> (5) Feature Computation [FeatureSnapshot]
+  -> (6) Change Event Generation [ChangeEvent]
+  -> (7) Editorial Assembly & Review [Bulletin, BulletinSection, Highlight]
+  -> (8) Publish & Distribution [published bulletin/highlight artifacts]
+  -> (9) Lead Capture [ContactInquiry]
 ```
 
-## 5) Major Platform Layers
+## 5) Core Data Objects (canonical names)
+These object names are authoritative for implementation:
+- `Source`
+- `SourceCheck`
+- `IngestionRun`
+- `RawAsset`
+- `NormalizedRecord`
+- `FeatureSnapshot`
+- `Entity`
+- `EntityLink`
+- `ChangeEvent`
+- `Bulletin`
+- `BulletinSection`
+- `Highlight`
+- `ChannelConfig`
+- `ContactInquiry`
 
-### 5.1 Source Monitoring
-- Maintains source definitions, check schedules, update fingerprints.
-- Performs lightweight checks (etag/hash/last-modified/record counts).
-- Emits `SourceCheck` records and candidate update events.
+Any new object type must be added first in `DATA_CONTRACTS.md` before code use.
 
-### 5.2 Ingestion
-- Executes only when update criteria are met.
-- Pulls raw assets (files, API payloads, HTML snapshots).
-- Stores immutable raw artifacts in object storage.
-- Emits `IngestionRun` and `RawAsset` records.
+## 6) Deterministic vs AI-Assisted Responsibilities
+### Deterministic (authoritative)
+- Update detection logic (`SourceCheck.change_detected`).
+- Raw asset capture and checksums.
+- Parsing, typing, normalization, and schema validation.
+- Feature computation and significance scoring.
+- `ChangeEvent` creation and lineage linkage.
 
-### 5.3 Normalization / Cleaning
-- Parses raw artifacts into deterministic canonical forms.
-- Applies typed schemas and unit/date normalization.
-- Produces `NormalizedRecord` rows and parse-quality metrics.
+### AI-assisted (non-authoritative)
+- Drafting headings, prose, and summary variants.
+- Suggesting section ordering.
+- Suggesting highlight wording.
 
-### 5.4 Feature Engineering / Change Detection
-- Computes derived features and entity mappings.
-- Diffs against prior snapshots to create `ChangeEvent` objects.
-- Scores significance with deterministic rules (thresholds, rule weights).
+Hard rule: published assertions must retain valid citations to deterministic objects.
 
-### 5.5 Editorial Intelligence
-- Uses LLMs only on deterministic inputs (`ChangeEvent`, feature tables, provenance references).
-- Generates draft summaries, title suggestions, bulletin section ordering, and highlight candidates.
-- Supports human review and approval workflow.
+## 7) Operating Model
+- Cadence: weekly bulletin baseline per channel; higher check frequency where configured in `ChannelConfig`.
+- Deployment target: GCP batch-oriented services.
+- Priority order: traceability > reliability > throughput > UI polish.
 
-### 5.6 Publishing / Presentation
-- Channel pages: bulletin archive, latest issue, key entities/events.
-- Umbrella page: top multi-channel highlights and recent bulletins.
-- Published artifacts are versioned and traceable to source-linked events.
+## 8) Implementation Directives
+- Use a monorepo with strict package boundaries.
+- Enforce schema validation at stage boundaries.
+- Enforce lineage completeness from `BulletinSection`/`Highlight` to `RawAsset`.
+- Keep publication metadata explicit for modular distribution (`slug`, `canonical_url`, `publish_timestamp`, `render_version`, `content_hash`, `distribution_targets`).
+- Treat published bulletins as fixed artifacts once generated.
 
-### 5.7 Contact / Lead Capture
-- Channel- and context-aware inquiry forms.
-- Captures company, question, urgency, data needs.
-- Routes to CRM with channel tags and relevant bulletin context.
-
-## 6) Deterministic Pipeline vs Editorial AI Layer
-
-### Deterministic (must be reproducible)
-- Source checks and update decisions.
-- Ingestion and raw preservation.
-- Parsing, cleaning, normalization.
-- Entity resolution rules where used for truth-bearing fields.
-- Diffing, change-event creation, numeric metrics.
-
-### AI-assisted (must be reviewable)
-- Summarization of validated change events.
-- Ranking suggestions for editorial priority.
-- Bulletin prose drafting.
-- Alternative headline generation.
-
-**Hard rule:** AI can propose language, not authoritative facts. Facts must be resolvable to deterministic records.
-
-## 7) Recommended Repo Strategy
-
-### Recommendation: Monorepo with strict package boundaries
-Use a single repository containing platform modules and channel configs.
-
-Why:
-- Shared contracts are the primary scaling constraint; monorepo reduces drift.
-- Common CI validations for schemas, provenance, and pipeline quality.
-- Easier refactor path after pilot channel succeeds.
-
-Suggested top-level layout:
-- `platform/core` (contracts, shared types, ids, timestamps)
-- `platform/monitoring` (source checks/schedulers)
-- `platform/ingestion`
-- `platform/normalize`
-- `platform/features`
-- `platform/editorial`
-- `platform/publishing`
-- `platform/contact`
-- `channels/{grants,trade,manufacturing,econ,ma}` (channel configs, rules, templates)
-- `infra/gcp`
-- `docs/`
-
-## 8) Recommended Modular Boundaries
-- **Contract module**: canonical schemas and validators.
-- **Connector module**: source adapters (API/file/web) with shared interface.
-- **Ingestion orchestrator**: run management, retries, checkpointing.
-- **Normalization module**: parser/transforms with deterministic unit tests.
-- **Entity module**: entity canonicalization and linking primitives.
-- **Change module**: diff engine + significance scoring.
-- **Editorial module**: prompt templates, draft generation, guardrails.
-- **Publish module**: bulletin assembly, renderers, feed/index generation.
-- **Contact module**: form handling, anti-spam, CRM delivery.
-
-## 9) Deployment Assumptions (GCP)
-
-**Assumptions**
-1. Primary cloud is GCP.
-2. Workload is batch/scheduled, not latency-critical online transactions.
-3. Team size is small; operational simplicity is prioritized.
-
-### Recommended GCP stack
-- **Cloud Scheduler**: source-check and publish schedules.
-- **Cloud Run Jobs / Cloud Run services**: ingestion, normalization, feature, editorial jobs.
-- **Pub/Sub**: decouple update detection from downstream processing.
-- **Cloud Storage**: immutable raw assets and generated artifacts.
-- **Cloud SQL (PostgreSQL)**: relational metadata, clean/features/published tables.
-- **BigQuery (optional later)**: analytical workloads and longer-horizon trend queries.
-- **Secret Manager**: source/API credentials.
-- **Cloud Logging + Error Reporting + Monitoring**: centralized ops.
-- **Artifact Registry + Cloud Build**: build and deploy pipeline.
-
-## 10) Observability, Logging, and Provenance Expectations
-- Every pipeline step emits structured logs with `run_id`, `source_id`, `channel_id`.
-- Every publish artifact references originating `ChangeEvent` and underlying `RawAsset` ids.
-- Alerting required for:
-  - repeated source-check failures,
-  - parse quality drop,
-  - zero-output anomaly (expected updates but none generated),
-  - publish failures.
-- Maintain audit trail for editorial actions:
-  - draft created by model/version,
-  - human edits,
-  - approval timestamp/user.
-
-## 11) Design Principles
-1. One platform, many channels.
-2. Deterministic truth layer, AI editorial layer.
-3. Preserve raw evidence.
-4. End-to-end traceability.
-5. Config over code for channel onboarding.
-6. Pilot-first, then abstract and scale.
-7. Optimize for weekly cadence reliability over feature novelty.
-
-## 12) Non-Goals
-- Real-time user dashboards with sub-second updates.
-- Full self-serve BI platform.
-- Autonomous publishing with zero human review in early stages.
-- Overfitted channel-specific code paths in the core platform.
-
-## 13) Shared vs Channel-Specific Responsibilities
-
-### Shared across all channels
-- Core data contracts and id/timestamp standards.
-- Source check orchestration and ingestion run lifecycle.
-- Raw storage and provenance model.
-- Normalization framework and validation engine.
-- Entity/object linking patterns.
-- Change-event model and significance framework.
-- Bulletin assembly workflow and publishing primitives.
-- Contact capture service and CRM integration.
-
-### Channel-specific
-- Source registry entries and connector configs.
-- Parsing maps for unique source formats.
-- Significance thresholds/weights.
-- Bulletin templates, tone, and section weighting.
-- Entity taxonomies and domain tags.
-- CTA wording and service packages.
-
-## 14) What AI Does / What AI Does Not Do
-
-### AI does
-- Summarize verified change events into concise editorial language.
-- Propose priority ranking based on deterministic signals.
-- Draft bulletin sections and cross-channel highlights.
-- Suggest title variants and CTA phrasing.
-
-### AI does not do
-- Authoritative extraction of numeric facts without deterministic parser support.
-- Schema mapping for source-of-truth tables in production.
-- Hard joins across entities where deterministic linkage rules exist.
-- Final publish decisions without human approval (at least through pilot and scale-up phases).
-
-## 15) Key Risks and Mitigations
-1. **Risk: Source volatility (format changes, access disruptions).**
-   - Mitigation: connector health checks, parser contract tests, fallback ingestion paths, alerting.
-
-2. **Risk: Schema drift between channels.**
-   - Mitigation: central contracts package, schema version gates in CI, deprecation policy.
-
-3. **Risk: AI hallucination or overconfident narrative.**
-   - Mitigation: grounded prompts with source-linked facts only, publishability checks, human approval.
-
-4. **Risk: Operational overload with five channels.**
-   - Mitigation: pilot-first rollout, shared runbooks, channel onboarding checklist.
-
-5. **Risk: Weak provenance breaks trust/compliance.**
-   - Mitigation: mandatory citation references in `BulletinSection` and `Highlight`, immutable raw retention policy.
-
-6. **Risk: Under-instrumented pipeline failures.**
-   - Mitigation: run-level metrics, SLOs for check/ingest/publish stages, incident playbooks.
+## 9) Open Questions
+1. Should `FeatureSnapshot` payloads remain in PostgreSQL JSONB, or move to parquet-first storage once volume grows?
+2. Should umbrella highlights allow manual inclusion of lower-significance events for strategic context, and if yes, with what explicit flag?
