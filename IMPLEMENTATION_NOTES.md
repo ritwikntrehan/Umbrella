@@ -1,29 +1,80 @@
-# Implementation Notes - Phase 1 Scaffold
+# Implementation Notes - Deterministic Grants Pilot Slice
 
-## What was scaffolded
+## What now works
 
-- Monorepo structure for apps and shared packages.
-- Core deterministic contracts for `Source`, `SourceCheck`, `IngestionRun`, `RawAsset`, and `ChannelConfig`.
-- Channel configuration package with all five channel slugs present.
-- Mock grants source adapter implementing metadata check, fetch, normalize, and diff fingerprint hooks.
-- Jobs app skeleton with runners for source check, ingestion, normalization, and change detection.
-- Minimal web app skeleton with homepage, channels landing, grants pilot page, and contact CTA.
-- Repo-level setup (`package.json` workspaces, TypeScript base config, `.gitignore`, `.env.example`).
-- Docs index to explain how root architecture docs should drive implementation.
+A narrow deterministic pipeline loop is wired for the **grants channel pilot source only** using existing scaffold components:
 
-## Intentionally deferred
+1. `source check`
+2. `ingestion run`
+3. `normalization run`
+4. `change detection run`
 
-- Real external source integrations and authenticated API clients.
-- Persistent storage/database wiring.
-- Editorial AI generation/ranking workflows.
-- Production-grade front-end framework and design system.
-- Cloud deployment automation and infrastructure provisioning.
+The flow persists concrete JSON artifacts that later editorial assembly can consume.
 
-## Next logical implementation task
+### Artifact outputs
 
-Implement Phase 2 deterministic ingestion persistence:
+For each grants pilot run, the jobs app now writes:
 
-1. Add storage/repository interfaces and local persistence stubs.
-2. Persist `SourceCheck`, `IngestionRun`, and `RawAsset` outputs from `apps/jobs`.
-3. Add idempotency and run-level tracing around the mock pipeline.
-4. Expand grants channel with one real read-only adapter integration.
+- `SourceCheck`
+- `IngestionRun`
+- `RawAsset[]`
+- normalized grants records
+- change event output
+
+### Local data convention
+
+Data root defaults to `data/grants-pilot` and follows the architecture-aligned directory structure:
+
+- `raw/` — source check, ingestion run, raw assets
+- `clean/` — normalized records
+- `features/` — change events (`latest.change-event.json` + run-scoped event)
+- `published/` — reserved (not used yet)
+
+`UMBRELLA_DATA_DIR` can override the data root for local runs/tests.
+
+### Validation
+
+Lightweight runtime validation was added for key deterministic objects:
+
+- source check required fields
+- raw asset required fields
+- normalized record required fields
+
+Validation remains intentionally minimal and aligned with current contracts.
+
+## How to run
+
+From repo root:
+
+```bash
+npm run pilot:grants:source-check
+npm run pilot:grants
+```
+
+The full command (`pilot:grants`) runs the deterministic end-to-end grants pilot slice in one command.
+
+## Tests added
+
+Focused tests cover:
+
+- mock grants adapter deterministic behavior
+- normalization output shape
+- change detection for stable vs changed mock fixture input
+
+Run with:
+
+```bash
+npm run test:grants-pilot
+```
+
+## Deferred (intentionally unchanged)
+
+- editorial AI layer
+- publish workflow
+- real DB persistence
+- non-grants channel expansion
+- broad abstractions or architecture redesign
+
+## Next logical task
+
+Implement deterministic **artifact indexing + lightweight query/read API** for the grants pilot outputs (still local-file backed), so downstream editorial assembly can consume artifacts without direct filesystem traversal.
