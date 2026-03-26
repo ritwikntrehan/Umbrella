@@ -1,12 +1,69 @@
-import type { RawAsset, Source } from "@umbrella/core";
-import { getAdapter } from "../lib/adapter-registry.js";
+import { createHash } from "node:crypto";
+import type { Source } from "@umbrella/core";
+import type { NormalizedRecord } from "@umbrella/source-adapters";
 
-export function runChangeDetection(source: Source, rawAssets: RawAsset[]): string[] {
-  const adapter = getAdapter(source.adapterKey);
+export interface GrantsChangeEvent {
+  id: string;
+  sourceId: string;
+  detectedAt: string;
+  status: "initial" | "no_change" | "changed";
+  currentFingerprint: string;
+  previousFingerprint?: string;
+  addedExternalIds: string[];
+  updatedExternalIds: string[];
+  removedExternalIds: string[];
+  currentExternalIds: string[];
+}
 
-  if (!adapter.canProcessDiff(source)) {
-    return [];
-  }
+function hashRecord(record: NormalizedRecord): string {
+  return createHash("sha256").update(JSON.stringify(record.payload)).digest("hex");
+}
 
-  return rawAssets.map((asset) => adapter.getDiffFingerprint(asset));
+function fingerprint(records: NormalizedRecord[]): string {
+  const normalized = records
+    .map((record) => `${record.externalId}:${hashRecord(record)}`)
+    .sort()
+    .join("|");
+
+  return createHash("sha256").update(normalized).digest("hex");
+}
+
+export function runChangeDetection(
+  source: Source,
+  normalizedRecords: NormalizedRecord[],
+  previousEvent: GrantsChangeEvent | null
+): GrantsChangeEvent {
+  const detectedAt = new Date().toISOString();
+  const currentFingerprint = fingerprint(normalizedRecords);
+
+  const previousIds = new Set(previousEvent?.currentExternalIds ?? []);
+  const currentIds = new Set(normalizedRecords.map((record) => record.externalId));
+
+  const addedExternalIds = [...currentIds].filter((id) => !previousIds.has(id)).sort();
+  const removedExternalIds = [...previousIds].filter((id) => !currentIds.has(id)).sort();
+
+  const status: GrantsChangeEvent["status"] =
+    !previousEvent
+      ? "initial"
+      : previousEvent.currentFingerprint === currentFingerprint
+        ? "no_change"
+        : "changed";
+
+  const updatedExternalIds =
+    status === "changed" && addedExternalIds.length === 0 && removedExternalIds.length === 0
+      ? normalizedRecords.map((record) => record.externalId).sort()
+      : [];
+
+  return {
+    id: `change-${source.id}-${Date.now()}`,
+    sourceId: source.id,
+    detectedAt,
+    status,
+    currentFingerprint,
+    previousFingerprint: previousEvent?.currentFingerprint,
+    addedExternalIds,
+    updatedExternalIds,
+    removedExternalIds,
+    currentExternalIds: [...currentIds].sort()
+  };
 }
