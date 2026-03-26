@@ -14,7 +14,11 @@
     "pilot:grants:bulletin": "tsx src/index.ts grants-bulletin",
     "pilot:grants:bulletin:inspect": "tsx src/index.ts inspect-grants-bulletin",
     "pilot:grants:editorial": "tsx src/index.ts grants-editorial",
-    "pilot:grants:editorial:inspect": "tsx src/index.ts inspect-grants-editorial"
+    "pilot:grants:editorial:inspect": "tsx src/index.ts inspect-grants-editorial",
+    "pilot:trade": "tsx src/index.ts trade-pilot",
+    "pilot:trade:source-check": "tsx src/index.ts trade-source-check",
+    "pilot:trade:bulletin": "tsx src/index.ts trade-bulletin",
+    "pilot:trade:editorial": "tsx src/index.ts trade-editorial"
   },
   "dependencies": {
     "@umbrella/channel-config": "0.1.0",

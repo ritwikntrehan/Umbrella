@@ -1,6 +1,10 @@
-import type { GrantsEditorialViewModel } from "./grants-artifact-reader.js";
+interface EditorialModelBase {
+  bulletinPeriod?: { label?: string };
+  publicationMetadata?: { issue_date?: string };
+  provenanceReferences?: Array<{ ref_type: string; ref_value: string }>;
+}
 
-export function formatBulletinPeriod(model: GrantsEditorialViewModel): string {
+export function formatBulletinPeriod(model: EditorialModelBase): string {
   if (model.bulletinPeriod?.label) {
     return model.bulletinPeriod.label;
   }
@@ -21,7 +25,7 @@ export function renderOptionalItems(items: string[] | undefined, emptyMessage: s
   return `<ul>${list}</ul>`;
 }
 
-export function renderProvenanceSnippet(model: GrantsEditorialViewModel, max = 3): string {
+export function renderProvenanceSnippet(model: EditorialModelBase, max = 3): string {
   const refs = model.provenanceReferences ?? [];
   if (refs.length === 0) {
     return "<p>Provenance references are not available in this artifact.</p>";

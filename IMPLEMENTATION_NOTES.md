@@ -1,229 +1,92 @@
-# Implementation Notes - Deterministic Grants Pilot Slice
+# Implementation Notes - Grants + Trade Deterministic Vertical Slices
 
-## What now works
+## Current state
 
-A narrow deterministic pipeline loop is wired for the **grants channel pilot source only** using existing scaffold components:
+The platform now proves two channels through the same layered pattern:
 
-1. `source check`
-2. `ingestion run`
-3. `normalization run`
-4. `change detection run`
+- grants
+- trade
 
-The flow persists concrete JSON artifacts that later editorial assembly can consume.
+Both channels run:
 
-### Artifact outputs
+1. source check
+2. ingestion
+3. normalization
+4. change detection
+5. bulletin-ready assembly (deterministic)
+6. editorial transformation (instruction-driven, deterministic-template)
+7. web rendering from latest editorial artifact
 
-For each grants pilot run, the jobs app now writes:
+## Trade second-channel additions
 
-- `SourceCheck`
-- `IngestionRun`
-- `RawAsset[]`
-- normalized grants records
-- change event output
+### Source + adapter
 
-### Local data convention
+- Added `tradeSources` pilot source in channel config.
+- Added `MockTradeAdapter` with deterministic fixtures supporting:
+  - stable/base run
+  - changed run (`?variant=changed`)
+  - metadata/source-check support
+  - fetch + normalize + diff fingerprint
 
-Data root defaults to `data/grants-pilot` and follows the architecture-aligned directory structure:
+### Pipeline wiring
 
-- `raw/` — source check, ingestion run, raw assets
-- `clean/` — normalized records
-- `features/` — change events (`latest.change-event.json` + run-scoped event)
-- `published/` — bulletin-ready and editorial artifacts (`latest.*` + run-scoped files)
+- Added jobs commands for trade pipeline and downstream layers:
+  - `trade-source-check`
+  - `trade-pilot`
+  - `trade-bulletin`
+  - `trade-editorial`
 
-`UMBRELLA_DATA_DIR` can override the data root for local runs/tests.
+### Bulletin-ready + editorial
 
-### Validation
+- Added `TradeBulletinReadyArtifact` assembly using deterministic templates.
+- Added `TRADE_EDITORIAL_INSTRUCTIONS_V1`.
+- Added trade editorial transformer preserving provenance and deterministic references.
 
-Lightweight runtime validation was added for key deterministic objects:
+### Web
 
-- source check required fields
-- raw asset required fields
-- normalized record required fields
+- Added homepage trade highlight module.
+- Added `/channels/trade` page reading latest trade editorial artifact.
+- Added fallback states when no trade artifact exists.
 
-Validation remains intentionally minimal and aligned with current contracts.
+## Minimal shared cleanup
 
-## How to run
+- Generalized change event naming to `DeterministicChangeEvent` with grants/trade type aliases.
+- Local artifact store now handles both grants and trade artifact unions.
+- Reused shared web render helper utilities for grants and trade pages.
 
-From repo root:
+## How to generate and inspect trade artifacts
 
 ```bash
-npm run pilot:grants:source-check
-npm run pilot:grants
+npm run pilot:trade
+npm run pilot:trade:bulletin
+npm run pilot:trade:editorial
 ```
 
-The full command (`pilot:grants`) runs the deterministic end-to-end grants pilot slice in one command.
+Artifacts are written under local conventions:
+
+- `data/grants-pilot/raw/trade-pilot-bulletins/*`
+- `data/grants-pilot/clean/trade-pilot-bulletins/*`
+- `data/grants-pilot/features/trade-pilot-bulletins/latest.change-event.json`
+- `data/grants-pilot/published/trade-pilot-bulletins/latest.bulletin-ready.json`
+- `data/grants-pilot/published/trade-pilot-bulletins/latest.editorial.json`
 
 ## Tests added
 
-Focused tests cover:
+- trade deterministic adapter behavior
+- trade normalization shape
+- trade change detection stable vs changed
+- trade bulletin assembly
+- trade editorial generation
+- trade web fallback behavior
 
-- mock grants adapter deterministic behavior
-- normalization output shape
-- change detection for stable vs changed mock fixture input
+## Intentionally still deferred
 
-Run with:
+- umbrella cross-channel synthesis
+- search/archive systems
+- publish/distribution workflow
+- approval/revision workflow
+- broad all-channel abstraction pass
 
-```bash
-npm run test:grants-pilot
-```
+## Next likely step
 
-## Deferred (intentionally unchanged)
-
-- editorial AI layer
-- publish workflow
-- real DB persistence
-- non-grants channel expansion
-- broad abstractions or architecture redesign
-
-## Next logical task
-
-Implement deterministic **artifact indexing + lightweight query/read API** for the grants pilot outputs (still local-file backed), so downstream editorial assembly can consume artifacts without direct filesystem traversal.
-
-
-## Bulletin-ready assembly layer (new in this step)
-
-A deterministic grants bulletin assembler now sits after change detection and before any editorial AI.
-
-### What it produces
-
-`GrantsBulletinReadyArtifact` is assembled from current local artifacts and includes section-ready fields for:
-
-- `top_line`
-- `what_changed`
-- `why_it_matters`
-- `custom_work_cta`
-- optional `data_snapshot`
-- optional `watchlist_1_4_weeks`
-
-Plus provenance and publication metadata placeholders required for later stages.
-
-### Deterministic rules used
-
-- bulletin period is derived from normalized `publishedAt` dates (fallback to change detection date)
-- section text is deterministic template text keyed off `changeEvent.status`
-- watchlist is derived from added/updated IDs with deterministic ordering
-- record/provenance refs are sorted and explicit
-- output content hash is deterministic for identical inputs
-
-### Artifact location
-
-- `published/<source_id>/<bulletin_id>.bulletin-ready.json`
-- `published/<source_id>/latest.bulletin-ready.json`
-
-### How to run
-
-```bash
-npm run pilot:grants
-npm run pilot:grants:bulletin
-npm run pilot:grants:bulletin:inspect
-```
-
-### What is intentionally deferred
-
-- LLM editorial intelligence/refinement
-- publish/revision workflow
-- non-grants channel assembly
-- broad generalized cross-channel bulletin abstraction
-
-### Next likely step
-
-Implement a narrow editorial-intelligence pass that consumes `GrantsBulletinReadyArtifact` and produces an explicit draft editorial layer while preserving provenance links and deterministic numeric claims.
-
-## Editorial intelligence layer v1 (grants-only, this step)
-
-A new grants-only editorial transformation now sits on top of the deterministic bulletin-ready artifact.
-
-### What it produces
-
-`GrantsEditorialArtifact` is now generated from the latest `GrantsBulletinReadyArtifact` and includes:
-
-- source bulletin artifact reference (`source_bulletin_ready_artifact`)
-- instruction contract version (`editorial_instruction_version`)
-- refined editorial sections (`refined_top_line`, `refined_what_changed`, `refined_why_it_matters`, `refined_custom_work_cta`)
-- optional refined carry-forward sections (`refined_data_snapshot`, `refined_watchlist_1_4_weeks`)
-- preserved `provenance_references`
-- publication metadata placeholders (draft-only, no workflow added)
-
-### Instruction-driven behavior
-
-The editorial layer is driven by explicit spec in:
-
-- `apps/jobs/src/runners/grants-editorial-instructions.ts`
-
-It defines:
-
-- tone and compression guidance
-- emphasize vs avoid lists
-- no-change and changed run handling rules
-- CTA guidance
-- provenance/citation handling rules
-- explicit LLM integration posture (optional interface, disabled by default)
-
-### LLM integration status
-
-Live LLM calls are intentionally **deferred** in this step.
-
-Current mode is deterministic template transformation with an instruction contract that later LLM synthesis can consume directly.
-
-### Jobs wiring
-
-Added commands:
-
-- `grants-editorial` — generate latest grants editorial artifact from latest bulletin-ready artifact
-- `inspect-grants-editorial` — print minimal summary/inspection output
-
-### Artifact location
-
-Under local artifact root (`data/grants-pilot` unless overridden):
-
-- `published/<source_id>/<bulletin_id>.editorial.json`
-- `published/<source_id>/latest.editorial.json`
-
-### Tests added
-
-Focused tests now cover:
-
-- initial bulletin-ready -> editorial transformation
-- no-change transformation behavior
-- changed transformation behavior
-- provenance and citation reference preservation
-- deterministic stability for identical input
-- instruction-version application/override behavior
-
-### Next likely step
-
-Introduce an optional, pluggable LLM refinement adapter for grants editorial synthesis that consumes the same instruction contract while keeping deterministic fallback as the default runtime path.
-
-
-## Web consumption slice added (this step)
-
-The web layer now consumes the latest local grants editorial artifact and renders it directly.
-
-### Integrated pages
-
-- `/` now includes a grants highlight module populated from real artifact fields
-- `/channels/grants` now renders the latest grants editorial sections
-
-### Data inputs
-
-- `published/<source_id>/latest.editorial.json` (primary)
-- `published/<source_id>/latest.bulletin-ready.json` (period/fallback metadata support)
-
-No database was introduced; reads are local-file based and aligned with existing artifact conventions.
-
-### Empty / partial handling
-
-- missing editorial artifact -> clear prompt with local generation commands
-- missing optional fields -> section-level fallback copy
-- missing optional sections -> section remains visible with empty-state message
-
-### What remains intentionally deferred
-
-- umbrella multi-channel synthesis
-- non-grants channel artifact rendering
-- search/archive UX
-- publishing/distribution workflow
-
-### Next likely step
-
-Introduce a minimal grants bulletin listing view (latest + small history) using existing local artifact files only.
+Implement a narrow channel-local “latest + recent history” artifact listing/read layer for grants and trade channel pages, while keeping channels independent and still avoiding umbrella synthesis.

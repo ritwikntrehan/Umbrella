@@ -1,15 +1,25 @@
 import type { ChannelConfig, Source } from "@umbrella/core";
 
 export const tradeSources: Source[] = [
-  // TODO: Add production trade sources in Phase 2.
+  {
+    id: "trade-pilot-bulletins",
+    channel: "trade",
+    name: "Trade Policy Bulletins (Mock)",
+    adapterKey: "mock-trade-feed",
+    url: "https://example.org/trade/bulletins",
+    cadence: "daily",
+    enabled: true,
+    tags: ["trade", "policy", "pilot"],
+    notes: "Phase 1 trade mock source for deterministic second-channel validation."
+  }
 ];
 
 export const tradeChannelConfig: ChannelConfig = {
   slug: "trade",
   displayName: "Trade",
-  description: "Trade channel scaffold placeholder.",
+  description: "Pilot channel for trade policy and tariff-related updates.",
   owner: "platform-editorial",
-  enabled: false,
+  enabled: true,
   sourceIds: tradeSources.map((source) => source.id),
-  defaultCadence: "weekly"
+  defaultCadence: "daily"
 };
