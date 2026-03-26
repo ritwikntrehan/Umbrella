@@ -1,13 +1,14 @@
-# Implementation Notes - Grants + Trade Deterministic Vertical Slices
+# Implementation Notes - Grants + Trade + Market-Signals Deterministic Vertical Slices
 
 ## Current state
 
-The platform now proves two channels through the same layered pattern:
+The platform now proves three channels through the same layered pattern:
 
 - grants
 - trade
+- market-signals
 
-Both channels run:
+All three channels run:
 
 1. source check
 2. ingestion
@@ -17,12 +18,12 @@ Both channels run:
 6. editorial transformation (instruction-driven, deterministic-template)
 7. web rendering from latest editorial artifact
 
-## Trade second-channel additions
+## Market-signals third-channel additions
 
 ### Source + adapter
 
-- Added `tradeSources` pilot source in channel config.
-- Added `MockTradeAdapter` with deterministic fixtures supporting:
+- Added `marketSignalsSources` pilot source in channel config.
+- Added `MockMarketSignalsAdapter` with deterministic fixtures supporting:
   - stable/base run
   - changed run (`?variant=changed`)
   - metadata/source-check support
@@ -30,54 +31,54 @@ Both channels run:
 
 ### Pipeline wiring
 
-- Added jobs commands for trade pipeline and downstream layers:
-  - `trade-source-check`
-  - `trade-pilot`
-  - `trade-bulletin`
-  - `trade-editorial`
+- Added jobs commands for market-signals pipeline and downstream layers:
+  - `market-signals-source-check`
+  - `market-signals-pilot`
+  - `market-signals-bulletin`
+  - `market-signals-editorial`
 
 ### Bulletin-ready + editorial
 
-- Added `TradeBulletinReadyArtifact` assembly using deterministic templates.
-- Added `TRADE_EDITORIAL_INSTRUCTIONS_V1`.
-- Added trade editorial transformer preserving provenance and deterministic references.
+- Added `MarketSignalsBulletinReadyArtifact` assembly using deterministic templates.
+- Added `MARKET_SIGNALS_EDITORIAL_INSTRUCTIONS_V1`.
+- Added market-signals editorial transformer preserving provenance and deterministic references.
 
 ### Web
 
-- Added homepage trade highlight module.
-- Added `/channels/trade` page reading latest trade editorial artifact.
-- Added fallback states when no trade artifact exists.
+- Added homepage market-signals highlight module.
+- Added `/channels/market-signals` page reading latest market-signals editorial artifact.
+- Added fallback states when no market-signals artifact exists.
 
 ## Minimal shared cleanup
 
-- Generalized change event naming to `DeterministicChangeEvent` with grants/trade type aliases.
-- Local artifact store now handles both grants and trade artifact unions.
-- Reused shared web render helper utilities for grants and trade pages.
+- Kept existing architecture and added only narrow helpers justified by a third real channel.
+- Added `apps/web/src/lib/artifact-reader-shared.ts` for shared artifact envelope parsing and latest artifact path reading.
+- Local artifact store now handles grants + trade + market-signals artifact unions.
 
-## How to generate and inspect trade artifacts
+## How to generate and inspect market-signals artifacts
 
 ```bash
-npm run pilot:trade
-npm run pilot:trade:bulletin
-npm run pilot:trade:editorial
+npm run pilot:market-signals
+npm run pilot:market-signals:bulletin
+npm run pilot:market-signals:editorial
 ```
 
 Artifacts are written under local conventions:
 
-- `data/grants-pilot/raw/trade-pilot-bulletins/*`
-- `data/grants-pilot/clean/trade-pilot-bulletins/*`
-- `data/grants-pilot/features/trade-pilot-bulletins/latest.change-event.json`
-- `data/grants-pilot/published/trade-pilot-bulletins/latest.bulletin-ready.json`
-- `data/grants-pilot/published/trade-pilot-bulletins/latest.editorial.json`
+- `data/grants-pilot/raw/market-signals-pilot-feed/*`
+- `data/grants-pilot/clean/market-signals-pilot-feed/*`
+- `data/grants-pilot/features/market-signals-pilot-feed/latest.change-event.json`
+- `data/grants-pilot/published/market-signals-pilot-feed/latest.bulletin-ready.json`
+- `data/grants-pilot/published/market-signals-pilot-feed/latest.editorial.json`
 
 ## Tests added
 
-- trade deterministic adapter behavior
-- trade normalization shape
-- trade change detection stable vs changed
-- trade bulletin assembly
-- trade editorial generation
-- trade web fallback behavior
+- market-signals deterministic adapter behavior
+- market-signals normalization shape
+- market-signals change detection stable vs changed
+- market-signals bulletin assembly
+- market-signals editorial generation
+- market-signals web fallback behavior
 
 ## Intentionally still deferred
 
@@ -86,7 +87,8 @@ Artifacts are written under local conventions:
 - publish/distribution workflow
 - approval/revision workflow
 - broad all-channel abstraction pass
+- GCP deployment
 
 ## Next likely step
 
-Implement a narrow channel-local “latest + recent history” artifact listing/read layer for grants and trade channel pages, while keeping channels independent and still avoiding umbrella synthesis.
+Implement a narrow channel-local “latest + recent history” artifact listing/read layer for grants, trade, and market-signals pages while keeping channels independent and still avoiding umbrella synthesis.

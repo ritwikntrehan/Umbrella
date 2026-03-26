@@ -1,9 +1,10 @@
-# Umbrella Platform (Deterministic Grants + Trade Pilot Slices)
+# Umbrella Platform (Deterministic Grants + Trade + Market-Signals Pilot Slices)
 
-This repo keeps the existing architecture and now includes two implemented channel slices:
+This repo keeps the existing architecture and now includes three implemented channel slices:
 
 - grants (first vertical slice)
 - trade (second vertical slice)
+- market-signals (third vertical slice)
 
 Each channel follows the same layered path:
 
@@ -19,6 +20,7 @@ Shared:
 - contracts and runner infrastructure (`apps/jobs/src/runners/*` for core pipeline stages)
 - local artifact store conventions (`raw/`, `clean/`, `features/`, `published/`)
 - change detection event shape (`DeterministicChangeEvent`)
+- shared web artifact envelope readers (`apps/web/src/lib/artifact-reader-shared.ts`)
 - web render helpers for common editorial section rendering
 
 Channel-specific:
@@ -26,7 +28,7 @@ Channel-specific:
 - source configuration (`packages/channel-config/src/channels/*.ts`)
 - mock source adapters (`packages/source-adapters/src/adapters/*`)
 - bulletin assemblers + editorial instruction specs + editorial transformers
-- channel pages and artifact readers in web
+- channel pages and channel-specific view model readers in web
 
 ## Local artifact convention
 
@@ -63,6 +65,14 @@ npm run pilot:trade:bulletin
 npm run pilot:trade:editorial
 ```
 
+## Run market-signals flow
+
+```bash
+npm run pilot:market-signals
+npm run pilot:market-signals:bulletin
+npm run pilot:market-signals:editorial
+```
+
 ## Run web
 
 ```bash
@@ -71,9 +81,10 @@ npm run dev -w @umbrella/web
 
 Then open:
 
-- `http://localhost:3000/` (grants + trade highlight modules)
+- `http://localhost:3000/` (grants + trade + market-signals highlight modules)
 - `http://localhost:3000/channels/grants`
 - `http://localhost:3000/channels/trade`
+- `http://localhost:3000/channels/market-signals`
 
 If artifacts are missing, pages show fallback guidance with generation commands.
 
@@ -84,7 +95,7 @@ npm run test:grants-pilot
 npm run test:web
 ```
 
-Trade-focused deterministic tests are included in `@umbrella/jobs` test suite.
+Channel-focused deterministic tests for grants, trade, and market-signals are included in `@umbrella/jobs`.
 
 ## Explicitly deferred
 
@@ -93,7 +104,8 @@ Trade-focused deterministic tests are included in `@umbrella/jobs` test suite.
 - publish/distribution workflow
 - approval/revision workflow
 - broad all-channel refactor
+- GCP deployment
 
 ## Next likely step
 
-Add a narrow local artifact listing/read path for each implemented channel page (latest + small history) without introducing cross-channel synthesis.
+Add a narrow channel-local “latest + recent history” artifact listing/read path for each implemented channel page, still keeping each channel independent and avoiding umbrella synthesis.

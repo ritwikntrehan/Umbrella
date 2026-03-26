@@ -1,10 +1,12 @@
-import { grantsSources, tradeSources } from "@umbrella/channel-config";
+import { grantsSources, marketSignalsSources, tradeSources } from "@umbrella/channel-config";
 import { createLocalArtifactStore } from "./lib/local-artifact-store.js";
 import { validateNormalizedRecords, validateRawAssets, validateSourceCheck } from "./lib/validators.js";
 import { runChangeDetection } from "./runners/change-detection-runner.js";
 import { assembleGrantsBulletinArtifact } from "./runners/grants-bulletin-assembler.js";
 import { transformGrantsBulletinToEditorial } from "./runners/grants-editorial-transformer.js";
 import { runIngestion } from "./runners/ingestion-runner.js";
+import { assembleMarketSignalsBulletinArtifact } from "./runners/market-signals-bulletin-assembler.js";
+import { transformMarketSignalsBulletinToEditorial } from "./runners/market-signals-editorial-transformer.js";
 import { runNormalization } from "./runners/normalization-runner.js";
 import { runSourceCheck } from "./runners/source-check-runner.js";
 import { assembleTradeBulletinArtifact } from "./runners/trade-bulletin-assembler.js";
@@ -110,6 +112,30 @@ async function runTradeBulletinAssembly(): Promise<void> {
   console.log(`  dataRoot=${store.rootDir}`);
 }
 
+async function runMarketSignalsBulletinAssembly(): Promise<void> {
+  const source = marketSignalsSources[0];
+  if (!source) throw new Error("No market-signals source configured for pilot scaffold.");
+
+  const store = await createLocalArtifactStore();
+  const changeEvent = await store.readLatestChangeEvent(source);
+  if (!changeEvent) throw new Error("No change event artifact found. Run market-signals pilot first.");
+
+  const normalizedRecords = await store.readLatestNormalizedRecords(source);
+  if (!normalizedRecords) throw new Error("No normalized records artifact found. Run market-signals pilot first.");
+
+  const bulletin = assembleMarketSignalsBulletinArtifact({ source, changeEvent, normalizedRecords });
+  const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
+
+  console.log("[jobs] market-signals bulletin-ready artifact assembled");
+  console.log(`  source=${source.id}`);
+  console.log(`  bulletinId=${bulletin.bulletin_id}`);
+  console.log(`  period=${bulletin.bulletin_period.label}`);
+  console.log(`  generatedAt=${bulletin.generated_at}`);
+  console.log(`  status=${changeEvent.status}`);
+  console.log(`  artifact=${artifactPath}`);
+  console.log(`  dataRoot=${store.rootDir}`);
+}
+
 async function runGrantsEditorialAssembly(): Promise<void> {
   const source = grantsSources[0];
   if (!source) throw new Error("No grants source configured for pilot scaffold.");
@@ -144,20 +170,41 @@ async function runTradeEditorialAssembly(): Promise<void> {
   console.log(`  artifact=${artifactPath}`);
 }
 
+async function runMarketSignalsEditorialAssembly(): Promise<void> {
+  const source = marketSignalsSources[0];
+  if (!source) throw new Error("No market-signals source configured for pilot scaffold.");
+
+  const store = await createLocalArtifactStore();
+  const bulletin = await store.readLatestBulletinReadyArtifact(source);
+  if (!bulletin || bulletin.channel_id !== "market-signals") {
+    throw new Error("No market-signals bulletin-ready artifact found. Run market-signals bulletin assembly first.");
+  }
+
+  const editorial = transformMarketSignalsBulletinToEditorial({ bulletin });
+  const artifactPath = await store.writeEditorialArtifact(source, editorial);
+
+  console.log("[jobs] market-signals editorial artifact assembled");
+  console.log(`  artifact=${artifactPath}`);
+}
+
 async function main(): Promise<void> {
   const command = process.argv[2] ?? "grants-pilot";
 
   if (command === "source-check") return runSourceCheckOnly(grantsSources[0]);
   if (command === "trade-source-check") return runSourceCheckOnly(tradeSources[0]);
+  if (command === "market-signals-source-check") return runSourceCheckOnly(marketSignalsSources[0]);
   if (command === "grants-pilot") return runDeterministicPipeline(grantsSources[0]);
   if (command === "trade-pilot") return runDeterministicPipeline(tradeSources[0]);
+  if (command === "market-signals-pilot") return runDeterministicPipeline(marketSignalsSources[0]);
   if (command === "grants-bulletin") return runGrantsBulletinAssembly();
   if (command === "trade-bulletin") return runTradeBulletinAssembly();
+  if (command === "market-signals-bulletin") return runMarketSignalsBulletinAssembly();
   if (command === "grants-editorial") return runGrantsEditorialAssembly();
   if (command === "trade-editorial") return runTradeEditorialAssembly();
+  if (command === "market-signals-editorial") return runMarketSignalsEditorialAssembly();
 
   throw new Error(
-    "Unknown jobs command. Use source-check/trade-source-check, grants-pilot/trade-pilot, grants-bulletin/trade-bulletin, grants-editorial/trade-editorial."
+    "Unknown jobs command. Use source-check/trade-source-check/market-signals-source-check, grants-pilot/trade-pilot/market-signals-pilot, grants-bulletin/trade-bulletin/market-signals-bulletin, grants-editorial/trade-editorial/market-signals-editorial."
   );
 }
 

@@ -1,12 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 import { grantsChannelConfig, grantsSources } from "@umbrella/channel-config";
-
-interface ArtifactEnvelope<T> {
-  sourceId: string;
-  createdAt: string;
-  payload: T;
-}
+import { readLatestBulletinReadyArtifact, readLatestEditorialArtifact } from "./artifact-reader-shared.js";
 
 interface EditorialSection {
   heading: string;
@@ -51,34 +44,6 @@ export interface GrantsEditorialViewModel {
   provenanceReferences?: Array<{ ref_type: string; ref_value: string }>;
   publicationMetadata?: PublicationMetadata;
   fallbackReason?: string;
-}
-
-function getDataRootDir(): string {
-  return process.env.UMBRELLA_DATA_DIR ?? join(process.cwd(), "data", "grants-pilot");
-}
-
-function parseArtifactEnvelope<T>(path: string): T | null {
-  if (!existsSync(path)) {
-    return null;
-  }
-
-  try {
-    const content = readFileSync(path, "utf8");
-    const parsed = JSON.parse(content) as ArtifactEnvelope<T>;
-    return parsed.payload;
-  } catch {
-    return null;
-  }
-}
-
-function readLatestEditorialArtifact(sourceId: string): any | null {
-  const path = join(getDataRootDir(), "published", sourceId, "latest.editorial.json");
-  return parseArtifactEnvelope(path);
-}
-
-function readLatestBulletinReadyArtifact(sourceId: string): any | null {
-  const path = join(getDataRootDir(), "published", sourceId, "latest.bulletin-ready.json");
-  return parseArtifactEnvelope(path);
 }
 
 export function readLatestGrantsEditorialForWeb(): GrantsEditorialViewModel {

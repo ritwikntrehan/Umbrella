@@ -18,7 +18,11 @@
     "pilot:trade": "tsx src/index.ts trade-pilot",
     "pilot:trade:source-check": "tsx src/index.ts trade-source-check",
     "pilot:trade:bulletin": "tsx src/index.ts trade-bulletin",
-    "pilot:trade:editorial": "tsx src/index.ts trade-editorial"
+    "pilot:trade:editorial": "tsx src/index.ts trade-editorial",
+    "pilot:market-signals": "tsx src/index.ts market-signals-pilot",
+    "pilot:market-signals:source-check": "tsx src/index.ts market-signals-source-check",
+    "pilot:market-signals:bulletin": "tsx src/index.ts market-signals-bulletin",
+    "pilot:market-signals:editorial": "tsx src/index.ts market-signals-editorial"
   },
   "dependencies": {
     "@umbrella/channel-config": "0.1.0",

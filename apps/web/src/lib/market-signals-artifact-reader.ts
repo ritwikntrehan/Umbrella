@@ -1,4 +1,4 @@
-import { tradeChannelConfig, tradeSources } from "@umbrella/channel-config";
+import { marketSignalsChannelConfig, marketSignalsSources } from "@umbrella/channel-config";
 import { readLatestBulletinReadyArtifact, readLatestEditorialArtifact } from "./artifact-reader-shared.js";
 
 interface EditorialSection {
@@ -20,7 +20,7 @@ interface PublicationMetadata {
   slug?: string;
 }
 
-export interface TradeEditorialViewModel {
+export interface MarketSignalsEditorialViewModel {
   channelLabel: string;
   sourceId: string;
   generatedAt?: string;
@@ -46,22 +46,22 @@ export interface TradeEditorialViewModel {
   fallbackReason?: string;
 }
 
-export function readLatestTradeEditorialForWeb(): TradeEditorialViewModel {
-  const sourceId = tradeSources[0]?.id ?? "trade-pilot-bulletins";
+export function readLatestMarketSignalsEditorialForWeb(): MarketSignalsEditorialViewModel {
+  const sourceId = marketSignalsSources[0]?.id ?? "market-signals-pilot-feed";
   const editorial = readLatestEditorialArtifact(sourceId);
   const bulletinReady = readLatestBulletinReadyArtifact(sourceId);
 
   if (!editorial) {
     return {
-      channelLabel: tradeChannelConfig.displayName,
+      channelLabel: marketSignalsChannelConfig.displayName,
       sourceId,
       fallbackReason:
-        "No trade editorial artifact found yet. Run the trade pipeline and editorial jobs to populate local content."
+        "No market-signals editorial artifact found yet. Run the market-signals pipeline and editorial jobs to populate local content."
     };
   }
 
   return {
-    channelLabel: tradeChannelConfig.displayName,
+    channelLabel: marketSignalsChannelConfig.displayName,
     sourceId,
     generatedAt: editorial.generated_at,
     bulletinId: editorial.bulletin_id,
