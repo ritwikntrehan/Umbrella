@@ -128,3 +128,68 @@ npm run pilot:grants:bulletin:inspect
 ### Next likely step
 
 Implement a narrow editorial-intelligence pass that consumes `GrantsBulletinReadyArtifact` and produces an explicit draft editorial layer while preserving provenance links and deterministic numeric claims.
+
+## Editorial intelligence layer v1 (grants-only, this step)
+
+A new grants-only editorial transformation now sits on top of the deterministic bulletin-ready artifact.
+
+### What it produces
+
+`GrantsEditorialArtifact` is now generated from the latest `GrantsBulletinReadyArtifact` and includes:
+
+- source bulletin artifact reference (`source_bulletin_ready_artifact`)
+- instruction contract version (`editorial_instruction_version`)
+- refined editorial sections (`refined_top_line`, `refined_what_changed`, `refined_why_it_matters`, `refined_custom_work_cta`)
+- optional refined carry-forward sections (`refined_data_snapshot`, `refined_watchlist_1_4_weeks`)
+- preserved `provenance_references`
+- publication metadata placeholders (draft-only, no workflow added)
+
+### Instruction-driven behavior
+
+The editorial layer is driven by explicit spec in:
+
+- `apps/jobs/src/runners/grants-editorial-instructions.ts`
+
+It defines:
+
+- tone and compression guidance
+- emphasize vs avoid lists
+- no-change and changed run handling rules
+- CTA guidance
+- provenance/citation handling rules
+- explicit LLM integration posture (optional interface, disabled by default)
+
+### LLM integration status
+
+Live LLM calls are intentionally **deferred** in this step.
+
+Current mode is deterministic template transformation with an instruction contract that later LLM synthesis can consume directly.
+
+### Jobs wiring
+
+Added commands:
+
+- `grants-editorial` — generate latest grants editorial artifact from latest bulletin-ready artifact
+- `inspect-grants-editorial` — print minimal summary/inspection output
+
+### Artifact location
+
+Under local artifact root (`data/grants-pilot` unless overridden):
+
+- `published/<source_id>/<bulletin_id>.editorial.json`
+- `published/<source_id>/latest.editorial.json`
+
+### Tests added
+
+Focused tests now cover:
+
+- initial bulletin-ready -> editorial transformation
+- no-change transformation behavior
+- changed transformation behavior
+- provenance and citation reference preservation
+- deterministic stability for identical input
+- instruction-version application/override behavior
+
+### Next likely step
+
+Introduce an optional, pluggable LLM refinement adapter for grants editorial synthesis that consumes the same instruction contract while keeping deterministic fallback as the default runtime path.

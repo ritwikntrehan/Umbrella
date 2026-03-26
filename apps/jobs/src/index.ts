@@ -1,6 +1,9 @@
 import { grantsSources } from "@umbrella/channel-config";
 import { runChangeDetection } from "./runners/change-detection-runner.js";
 import { assembleGrantsBulletinArtifact } from "./runners/grants-bulletin-assembler.js";
+import {
+  transformGrantsBulletinToEditorial
+} from "./runners/grants-editorial-transformer.js";
 import { runIngestion } from "./runners/ingestion-runner.js";
 import { runNormalization } from "./runners/normalization-runner.js";
 import { runSourceCheck } from "./runners/source-check-runner.js";
@@ -118,6 +121,53 @@ async function inspectLatestGrantsBulletin(): Promise<void> {
   console.log(`  watchlistCount=${bulletin.watchlist_1_4_weeks?.items.length ?? 0}`);
 }
 
+async function runGrantsEditorialAssembly(): Promise<void> {
+  const source = grantsSources[0];
+  if (!source) throw new Error("No grants source configured for pilot scaffold.");
+
+  const store = await createLocalArtifactStore();
+  const bulletin = await store.readLatestBulletinReadyArtifact(source);
+  if (!bulletin) {
+    throw new Error("No bulletin-ready artifact found. Run grants bulletin assembly first.");
+  }
+
+  const editorial = transformGrantsBulletinToEditorial({ bulletin });
+  const artifactPath = await store.writeEditorialArtifact(source, editorial);
+
+  console.log("[jobs] grants editorial artifact assembled");
+  console.log(`  source=${source.id}`);
+  console.log(`  bulletinId=${editorial.bulletin_id}`);
+  console.log(`  generatedAt=${editorial.generated_at}`);
+  console.log(`  instructionVersion=${editorial.editorial_instruction_version}`);
+  console.log(`  summary=${editorial.editorial_summary}`);
+  console.log(`  hasDataSnapshot=${editorial.refined_data_snapshot !== null}`);
+  console.log(`  watchlistCount=${editorial.refined_watchlist_1_4_weeks?.items.length ?? 0}`);
+  console.log(`  artifact=${artifactPath}`);
+  console.log(`  dataRoot=${store.rootDir}`);
+}
+
+async function inspectLatestGrantsEditorial(): Promise<void> {
+  const source = grantsSources[0];
+  if (!source) throw new Error("No grants source configured for pilot scaffold.");
+
+  const store = await createLocalArtifactStore();
+  const editorial = await store.readLatestEditorialArtifact(source);
+  if (!editorial) {
+    throw new Error("No grants editorial artifact found. Run grants-editorial first.");
+  }
+
+  console.log("[jobs] latest grants editorial artifact summary");
+  console.log(`  bulletinId=${editorial.bulletin_id}`);
+  console.log(`  generatedAt=${editorial.generated_at}`);
+  console.log(`  instructionVersion=${editorial.editorial_instruction_version}`);
+  console.log(`  summary=${editorial.editorial_summary}`);
+  console.log(`  topLine=${editorial.refined_top_line.body}`);
+  console.log(`  whatChanged=${editorial.refined_what_changed.items.join(" | ")}`);
+  console.log(`  whyItMatters=${editorial.refined_why_it_matters.items.join(" | ")}`);
+  console.log(`  provenanceCount=${editorial.provenance_references.length}`);
+  console.log(`  sourceBulletinRef=${editorial.source_bulletin_ready_artifact.artifact_filename}`);
+}
+
 async function main(): Promise<void> {
   const command = process.argv[2] ?? "grants-pilot";
 
@@ -141,8 +191,18 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (command === "grants-editorial") {
+    await runGrantsEditorialAssembly();
+    return;
+  }
+
+  if (command === "inspect-grants-editorial") {
+    await inspectLatestGrantsEditorial();
+    return;
+  }
+
   throw new Error(
-    `Unknown jobs command: ${command}. Use 'source-check', 'grants-pilot', 'grants-bulletin', or 'inspect-grants-bulletin'.`
+    `Unknown jobs command: ${command}. Use 'source-check', 'grants-pilot', 'grants-bulletin', 'inspect-grants-bulletin', 'grants-editorial', or 'inspect-grants-editorial'.`
   );
 }
 

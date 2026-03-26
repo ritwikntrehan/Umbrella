@@ -4,6 +4,7 @@ import type { IngestionRun, RawAsset, Source, SourceCheck } from "@umbrella/core
 import type { NormalizedRecord } from "@umbrella/source-adapters";
 import type { GrantsChangeEvent } from "../runners/change-detection-runner.js";
 import type { GrantsBulletinReadyArtifact } from "../runners/grants-bulletin-assembler.js";
+import type { GrantsEditorialArtifact } from "../runners/grants-editorial-transformer.js";
 
 interface ArtifactEnvelope<T> {
   sourceId: string;
@@ -19,9 +20,11 @@ export interface ArtifactStore {
   writeNormalizedRecords: (source: Source, runId: string, records: NormalizedRecord[]) => Promise<string>;
   writeChangeEvent: (source: Source, runId: string, event: GrantsChangeEvent) => Promise<string>;
   writeBulletinReadyArtifact: (source: Source, artifact: GrantsBulletinReadyArtifact) => Promise<string>;
+  writeEditorialArtifact: (source: Source, artifact: GrantsEditorialArtifact) => Promise<string>;
   readLatestChangeEvent: (source: Source) => Promise<GrantsChangeEvent | null>;
   readLatestNormalizedRecords: (source: Source) => Promise<NormalizedRecord[] | null>;
   readLatestBulletinReadyArtifact: (source: Source) => Promise<GrantsBulletinReadyArtifact | null>;
+  readLatestEditorialArtifact: (source: Source) => Promise<GrantsEditorialArtifact | null>;
 }
 
 const DIRECTORY_NAMES = {
@@ -97,6 +100,13 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
       const latestPath = join(sourcePublishedDir, "latest.bulletin-ready.json");
       return writeJson(latestPath, { sourceId: source.id, createdAt: artifact.generated_at, payload: artifact });
     },
+    async writeEditorialArtifact(source, artifact) {
+      const sourcePublishedDir = join(rootDir, DIRECTORY_NAMES.published, source.id);
+      const runPath = join(sourcePublishedDir, `${artifact.bulletin_id}.editorial.json`);
+      await writeJson(runPath, { sourceId: source.id, createdAt: artifact.generated_at, payload: artifact });
+      const latestPath = join(sourcePublishedDir, "latest.editorial.json");
+      return writeJson(latestPath, { sourceId: source.id, createdAt: artifact.generated_at, payload: artifact });
+    },
     async readLatestChangeEvent(source) {
       try {
         const path = join(rootDir, DIRECTORY_NAMES.features, source.id, "latest.change-event.json");
@@ -115,6 +125,16 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
         const path = join(rootDir, DIRECTORY_NAMES.published, source.id, "latest.bulletin-ready.json");
         const content = await readFile(path, "utf8");
         const parsed = JSON.parse(content) as ArtifactEnvelope<GrantsBulletinReadyArtifact>;
+        return parsed.payload;
+      } catch {
+        return null;
+      }
+    },
+    async readLatestEditorialArtifact(source) {
+      try {
+        const path = join(rootDir, DIRECTORY_NAMES.published, source.id, "latest.editorial.json");
+        const content = await readFile(path, "utf8");
+        const parsed = JSON.parse(content) as ArtifactEnvelope<GrantsEditorialArtifact>;
         return parsed.payload;
       } catch {
         return null;

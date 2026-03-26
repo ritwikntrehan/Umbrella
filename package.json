@@ -15,7 +15,9 @@
     "pilot:grants:source-check": "npm run pilot:grants:source-check -w @umbrella/jobs",
     "test:grants-pilot": "npm run test -w @umbrella/jobs",
     "pilot:grants:bulletin": "npm run pilot:grants:bulletin -w @umbrella/jobs",
-    "pilot:grants:bulletin:inspect": "npm run pilot:grants:bulletin:inspect -w @umbrella/jobs"
+    "pilot:grants:bulletin:inspect": "npm run pilot:grants:bulletin:inspect -w @umbrella/jobs",
+    "pilot:grants:editorial": "npm run pilot:grants:editorial -w @umbrella/jobs",
+    "pilot:grants:editorial:inspect": "npm run pilot:grants:editorial:inspect -w @umbrella/jobs"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
