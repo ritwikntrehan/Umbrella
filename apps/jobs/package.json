@@ -12,7 +12,9 @@
     "pilot:grants:source-check": "tsx src/index.ts source-check",
     "test": "tsx --test src/__tests__/*.test.ts",
     "pilot:grants:bulletin": "tsx src/index.ts grants-bulletin",
-    "pilot:grants:bulletin:inspect": "tsx src/index.ts inspect-grants-bulletin"
+    "pilot:grants:bulletin:inspect": "tsx src/index.ts inspect-grants-bulletin",
+    "pilot:grants:editorial": "tsx src/index.ts grants-editorial",
+    "pilot:grants:editorial:inspect": "tsx src/index.ts inspect-grants-editorial"
   },
   "dependencies": {
     "@umbrella/channel-config": "0.1.0",

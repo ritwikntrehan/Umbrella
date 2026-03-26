@@ -105,6 +105,59 @@ npm run pilot:grants:bulletin:inspect
 
 The inspect command prints a compact CLI summary of the latest bulletin-ready artifact.
 
+## Editorial Layer v1 (Grants-only, Instruction-driven, Pre-LLM)
+
+The first editorial intelligence layer now consumes the deterministic grants bulletin-ready artifact and produces a separate **grants editorial artifact**.
+
+### How it differs from bulletin-ready
+
+- bulletin-ready remains the deterministic facts layer
+- editorial is a distinct refinement layer with synthesized phrasing
+- deterministic facts and provenance are preserved and referenced, not rewritten
+- editorial output is explicitly tied to an instruction contract version
+
+### Editorial output contract highlights
+
+At minimum the artifact includes:
+
+- `channel_id`, `bulletin_id`
+- `source_bulletin_ready_artifact` reference
+- `generated_at`, `editorial_instruction_version`
+- `editorial_summary`
+- `refined_top_line`, `refined_what_changed`, `refined_why_it_matters`, `refined_custom_work_cta`
+- optional `refined_data_snapshot`, `refined_watchlist_1_4_weeks`
+- `provenance_references`
+- publication metadata placeholders aligned with current bulletin conventions
+
+### Instruction layer
+
+`apps/jobs/src/runners/grants-editorial-instructions.ts` defines explicit grants guidance for:
+
+- tone and compression style
+- emphasis/avoidance rules
+- no-change vs changed run behavior
+- CTA style
+- provenance handling
+- LLM integration stance (`enabled_by_default: false`, deterministic-template mode active)
+
+### Local storage path convention
+
+Editorial artifacts are stored under:
+
+- run-scoped: `data/grants-pilot/published/<source_id>/<bulletin_id>.editorial.json`
+- latest pointer: `data/grants-pilot/published/<source_id>/latest.editorial.json`
+
+### Run and inspect grants editorial output
+
+```bash
+npm run pilot:grants
+npm run pilot:grants:bulletin
+npm run pilot:grants:editorial
+npm run pilot:grants:editorial:inspect
+```
+
+Live LLM synthesis is intentionally deferred; this step delivers the modular instruction contract and deterministic editorial transformation structure needed for later integration.
+
 ## Tests (Pilot Path)
 
 ```bash
@@ -119,7 +172,7 @@ Covers:
 
 ## Explicitly Deferred
 
-- Editorial AI generation/ranking
+- Live LLM editorial synthesis/generation
 - Real publish workflow
 - Real database persistence
 - Expansion to non-grants channels
