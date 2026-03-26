@@ -78,3 +78,53 @@ npm run test:grants-pilot
 ## Next logical task
 
 Implement deterministic **artifact indexing + lightweight query/read API** for the grants pilot outputs (still local-file backed), so downstream editorial assembly can consume artifacts without direct filesystem traversal.
+
+
+## Bulletin-ready assembly layer (new in this step)
+
+A deterministic grants bulletin assembler now sits after change detection and before any editorial AI.
+
+### What it produces
+
+`GrantsBulletinReadyArtifact` is assembled from current local artifacts and includes section-ready fields for:
+
+- `top_line`
+- `what_changed`
+- `why_it_matters`
+- `custom_work_cta`
+- optional `data_snapshot`
+- optional `watchlist_1_4_weeks`
+
+Plus provenance and publication metadata placeholders required for later stages.
+
+### Deterministic rules used
+
+- bulletin period is derived from normalized `publishedAt` dates (fallback to change detection date)
+- section text is deterministic template text keyed off `changeEvent.status`
+- watchlist is derived from added/updated IDs with deterministic ordering
+- record/provenance refs are sorted and explicit
+- output content hash is deterministic for identical inputs
+
+### Artifact location
+
+- `published/<source_id>/<bulletin_id>.bulletin-ready.json`
+- `published/<source_id>/latest.bulletin-ready.json`
+
+### How to run
+
+```bash
+npm run pilot:grants
+npm run pilot:grants:bulletin
+npm run pilot:grants:bulletin:inspect
+```
+
+### What is intentionally deferred
+
+- LLM editorial intelligence/refinement
+- publish/revision workflow
+- non-grants channel assembly
+- broad generalized cross-channel bulletin abstraction
+
+### Next likely step
+
+Implement a narrow editorial-intelligence pass that consumes `GrantsBulletinReadyArtifact` and produces an explicit draft editorial layer while preserving provenance links and deterministic numeric claims.

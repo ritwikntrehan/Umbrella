@@ -65,6 +65,46 @@ cat data/grants-pilot/clean/grants-fed-notices/*.normalized-records.json
 cat data/grants-pilot/features/grants-fed-notices/latest.change-event.json
 ```
 
+
+## Bulletin-Ready Assembly (Grants, Deterministic, Pre-LLM)
+
+A new deterministic assembly step now converts grants pilot outputs into a **bulletin-ready artifact** for later editorial intelligence.
+
+### What the bulletin-ready artifact is
+
+It is a structured, section-ready object (not final editorial copy) built from:
+
+- latest change event output
+- latest normalized grants records
+- source metadata from grants channel config
+
+Minimum sections/fields included:
+
+- `channel_id`, `bulletin_period`, `generated_at`
+- `top_line`, `what_changed`, `why_it_matters`, `custom_work_cta`
+- optional/empty-state aware `data_snapshot`, `watchlist_1_4_weeks`
+- `record_references`, `provenance_references`
+- publication metadata placeholders (`status`, `issue_date`, `slug`, `canonical_url`, `publish_timestamp`, `render_version`, `content_hash`, `distribution_targets`)
+
+### Local storage path convention
+
+Bulletin artifacts are stored under:
+
+- run-scoped: `data/grants-pilot/published/<source_id>/<bulletin_id>.bulletin-ready.json`
+- latest pointer: `data/grants-pilot/published/<source_id>/latest.bulletin-ready.json`
+
+`UMBRELLA_DATA_DIR` still overrides the data root.
+
+### Run assembler and inspect
+
+```bash
+npm run pilot:grants
+npm run pilot:grants:bulletin
+npm run pilot:grants:bulletin:inspect
+```
+
+The inspect command prints a compact CLI summary of the latest bulletin-ready artifact.
+
 ## Tests (Pilot Path)
 
 ```bash

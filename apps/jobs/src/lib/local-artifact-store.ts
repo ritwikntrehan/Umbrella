@@ -1,8 +1,9 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { IngestionRun, RawAsset, Source, SourceCheck } from "@umbrella/core";
 import type { NormalizedRecord } from "@umbrella/source-adapters";
 import type { GrantsChangeEvent } from "../runners/change-detection-runner.js";
+import type { GrantsBulletinReadyArtifact } from "../runners/grants-bulletin-assembler.js";
 
 interface ArtifactEnvelope<T> {
   sourceId: string;
@@ -17,7 +18,10 @@ export interface ArtifactStore {
   writeRawAssets: (source: Source, runId: string, assets: RawAsset[]) => Promise<string>;
   writeNormalizedRecords: (source: Source, runId: string, records: NormalizedRecord[]) => Promise<string>;
   writeChangeEvent: (source: Source, runId: string, event: GrantsChangeEvent) => Promise<string>;
+  writeBulletinReadyArtifact: (source: Source, artifact: GrantsBulletinReadyArtifact) => Promise<string>;
   readLatestChangeEvent: (source: Source) => Promise<GrantsChangeEvent | null>;
+  readLatestNormalizedRecords: (source: Source) => Promise<NormalizedRecord[] | null>;
+  readLatestBulletinReadyArtifact: (source: Source) => Promise<GrantsBulletinReadyArtifact | null>;
 }
 
 const DIRECTORY_NAMES = {
@@ -31,6 +35,24 @@ async function writeJson<T>(path: string, payload: ArtifactEnvelope<T>): Promise
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, JSON.stringify(payload, null, 2), "utf8");
   return path;
+}
+
+
+
+async function readLatestBySuffix<T>(directoryPath: string, suffix: string): Promise<T | null> {
+  try {
+    const files = (await readdir(directoryPath)).filter((entry) => entry.endsWith(suffix)).sort();
+    const latest = files[files.length - 1];
+    if (!latest) {
+      return null;
+    }
+
+    const content = await readFile(join(directoryPath, latest), "utf8");
+    const parsed = JSON.parse(content) as ArtifactEnvelope<T>;
+    return parsed.payload;
+  } catch {
+    return null;
+  }
 }
 
 function getDataRootDir(): string {
@@ -68,11 +90,31 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
       const latestPath = join(rootDir, DIRECTORY_NAMES.features, source.id, "latest.change-event.json");
       return writeJson(latestPath, { sourceId: source.id, createdAt: new Date().toISOString(), payload: event });
     },
+    async writeBulletinReadyArtifact(source, artifact) {
+      const sourcePublishedDir = join(rootDir, DIRECTORY_NAMES.published, source.id);
+      const runPath = join(sourcePublishedDir, `${artifact.bulletin_id}.bulletin-ready.json`);
+      await writeJson(runPath, { sourceId: source.id, createdAt: artifact.generated_at, payload: artifact });
+      const latestPath = join(sourcePublishedDir, "latest.bulletin-ready.json");
+      return writeJson(latestPath, { sourceId: source.id, createdAt: artifact.generated_at, payload: artifact });
+    },
     async readLatestChangeEvent(source) {
       try {
         const path = join(rootDir, DIRECTORY_NAMES.features, source.id, "latest.change-event.json");
         const content = await readFile(path, "utf8");
         const parsed = JSON.parse(content) as ArtifactEnvelope<GrantsChangeEvent>;
+        return parsed.payload;
+      } catch {
+        return null;
+      }
+    },
+    async readLatestNormalizedRecords(source) {
+      return readLatestBySuffix<NormalizedRecord[]>(join(rootDir, DIRECTORY_NAMES.clean, source.id), ".normalized-records.json");
+    },
+    async readLatestBulletinReadyArtifact(source) {
+      try {
+        const path = join(rootDir, DIRECTORY_NAMES.published, source.id, "latest.bulletin-ready.json");
+        const content = await readFile(path, "utf8");
+        const parsed = JSON.parse(content) as ArtifactEnvelope<GrantsBulletinReadyArtifact>;
         return parsed.payload;
       } catch {
         return null;
