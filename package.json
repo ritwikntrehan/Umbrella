@@ -17,7 +17,12 @@
     "pilot:grants:bulletin": "npm run pilot:grants:bulletin -w @umbrella/jobs",
     "pilot:grants:bulletin:inspect": "npm run pilot:grants:bulletin:inspect -w @umbrella/jobs",
     "pilot:grants:editorial": "npm run pilot:grants:editorial -w @umbrella/jobs",
-    "pilot:grants:editorial:inspect": "npm run pilot:grants:editorial:inspect -w @umbrella/jobs"
+    "pilot:grants:editorial:inspect": "npm run pilot:grants:editorial:inspect -w @umbrella/jobs",
+    "pilot:trade": "npm run pilot:trade -w @umbrella/jobs",
+    "pilot:trade:source-check": "npm run pilot:trade:source-check -w @umbrella/jobs",
+    "pilot:trade:bulletin": "npm run pilot:trade:bulletin -w @umbrella/jobs",
+    "pilot:trade:editorial": "npm run pilot:trade:editorial -w @umbrella/jobs",
+    "test:web": "npm run test -w @umbrella/web"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

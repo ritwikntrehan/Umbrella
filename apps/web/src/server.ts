@@ -3,6 +3,7 @@ import { channelsPage } from "./pages/channels.js";
 import { contactPage } from "./pages/contact.js";
 import { grantsPage } from "./pages/grants.js";
 import { homePage } from "./pages/home.js";
+import { tradePage } from "./pages/trade.js";
 
 const port = Number(process.env.WEB_PORT ?? 3000);
 
@@ -24,6 +25,12 @@ const server = createServer((req, res) => {
   if (url === "/channels/grants") {
     res.writeHead(200, { "content-type": "text/html" });
     res.end(grantsPage());
+    return;
+  }
+
+  if (url === "/channels/trade") {
+    res.writeHead(200, { "content-type": "text/html" });
+    res.end(tradePage());
     return;
   }
 

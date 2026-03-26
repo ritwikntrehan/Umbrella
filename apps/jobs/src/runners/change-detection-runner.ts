@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { Source } from "@umbrella/core";
 import type { NormalizedRecord } from "@umbrella/source-adapters";
 
-export interface GrantsChangeEvent {
+export interface DeterministicChangeEvent {
   id: string;
   sourceId: string;
   detectedAt: string;
@@ -14,6 +14,9 @@ export interface GrantsChangeEvent {
   removedExternalIds: string[];
   currentExternalIds: string[];
 }
+
+export type GrantsChangeEvent = DeterministicChangeEvent;
+export type TradeChangeEvent = DeterministicChangeEvent;
 
 function hashRecord(record: NormalizedRecord): string {
   return createHash("sha256").update(JSON.stringify(record.payload)).digest("hex");
@@ -31,8 +34,8 @@ function fingerprint(records: NormalizedRecord[]): string {
 export function runChangeDetection(
   source: Source,
   normalizedRecords: NormalizedRecord[],
-  previousEvent: GrantsChangeEvent | null
-): GrantsChangeEvent {
+  previousEvent: DeterministicChangeEvent | null
+): DeterministicChangeEvent {
   const detectedAt = new Date().toISOString();
   const currentFingerprint = fingerprint(normalizedRecords);
 
@@ -42,7 +45,7 @@ export function runChangeDetection(
   const addedExternalIds = [...currentIds].filter((id) => !previousIds.has(id)).sort();
   const removedExternalIds = [...previousIds].filter((id) => !currentIds.has(id)).sort();
 
-  const status: GrantsChangeEvent["status"] =
+  const status: DeterministicChangeEvent["status"] =
     !previousEvent
       ? "initial"
       : previousEvent.currentFingerprint === currentFingerprint

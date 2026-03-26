@@ -1,30 +1,64 @@
-import { grantsChannelConfig } from "@umbrella/channel-config";
+import { grantsChannelConfig, tradeChannelConfig } from "@umbrella/channel-config";
 import { renderCard, renderLayout } from "@umbrella/ui";
 import { readLatestGrantsEditorialForWeb } from "../lib/grants-artifact-reader.js";
 import { formatBulletinPeriod } from "../lib/grants-render-helpers.js";
+import { readLatestTradeEditorialForWeb } from "../lib/trade-artifact-reader.js";
+
+function renderHighlight(params: {
+  label: string;
+  pageHref: string;
+  fallbackReason?: string;
+  period: string;
+  topLine?: string;
+  summary?: string;
+  cta?: string;
+}): string {
+  if (params.fallbackReason) {
+    return `<section class="card">
+      <h2>${params.label} Highlight</h2>
+      <p>${params.fallbackReason}</p>
+      <p><a href="${params.pageHref}">Open ${params.label.toLowerCase()} channel page</a></p>
+    </section>`;
+  }
+
+  return `<section class="card">
+    <h2>${params.label} Highlight</h2>
+    <p><strong>Period:</strong> ${params.period}</p>
+    <p><strong>Top line:</strong> ${params.topLine ?? "Top line pending"}</p>
+    <p><strong>Editorial summary:</strong> ${params.summary ?? "Summary pending"}</p>
+    <p><strong>CTA:</strong> ${params.cta ?? "Contact Umbrella for support."}</p>
+    <p><a href="${params.pageHref}">View full ${params.label.toLowerCase()} channel bulletin</a></p>
+  </section>`;
+}
 
 export function homePage(): string {
   const grants = readLatestGrantsEditorialForWeb();
-
-  const grantsHighlight = grants.fallbackReason
-    ? `<section class="card">
-        <h2>${grants.channelLabel} Highlight</h2>
-        <p>${grants.fallbackReason}</p>
-        <p><a href="/channels/grants">Open grants channel page</a></p>
-      </section>`
-    : `<section class="card">
-        <h2>${grants.channelLabel} Highlight</h2>
-        <p><strong>Period:</strong> ${formatBulletinPeriod(grants)}</p>
-        <p><strong>Top line:</strong> ${grants.refinedTopLine?.body ?? "Top line pending"}</p>
-        <p><strong>Editorial summary:</strong> ${grants.editorialSummary ?? "Summary pending"}</p>
-        <p><strong>CTA:</strong> ${grants.refinedCustomWorkCta?.body ?? "Contact Umbrella for grants support."}</p>
-        <p><a href="/channels/grants">View full grants channel bulletin</a></p>
-      </section>`;
+  const trade = readLatestTradeEditorialForWeb();
 
   const body = [
-    renderCard("Umbrella Platform", "First visible grants end-to-end slice: pipeline artifact -> web rendering."),
-    grantsHighlight,
-    renderCard("Other Channels", `Still placeholder-only while ${grantsChannelConfig.displayName} is the active web-integrated pilot.`)
+    renderCard("Umbrella Platform", "Visible deterministic slices now include grants and trade end-to-end rendering."),
+    renderHighlight({
+      label: grants.channelLabel,
+      pageHref: "/channels/grants",
+      fallbackReason: grants.fallbackReason,
+      period: formatBulletinPeriod(grants),
+      topLine: grants.refinedTopLine?.body,
+      summary: grants.editorialSummary,
+      cta: grants.refinedCustomWorkCta?.body
+    }),
+    renderHighlight({
+      label: trade.channelLabel,
+      pageHref: "/channels/trade",
+      fallbackReason: trade.fallbackReason,
+      period: formatBulletinPeriod(trade),
+      topLine: trade.refinedTopLine?.body,
+      summary: trade.editorialSummary,
+      cta: trade.refinedCustomWorkCta?.body
+    }),
+    renderCard(
+      "Other Channels",
+      `Still placeholder-only while ${grantsChannelConfig.displayName} and ${tradeChannelConfig.displayName} are active web-integrated pilots.`
+    )
   ].join("\n");
 
   return renderLayout("Umbrella | Home", body);

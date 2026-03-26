@@ -2,9 +2,11 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { IngestionRun, RawAsset, Source, SourceCheck } from "@umbrella/core";
 import type { NormalizedRecord } from "@umbrella/source-adapters";
-import type { GrantsChangeEvent } from "../runners/change-detection-runner.js";
+import type { DeterministicChangeEvent } from "../runners/change-detection-runner.js";
 import type { GrantsBulletinReadyArtifact } from "../runners/grants-bulletin-assembler.js";
 import type { GrantsEditorialArtifact } from "../runners/grants-editorial-transformer.js";
+import type { TradeBulletinReadyArtifact } from "../runners/trade-bulletin-assembler.js";
+import type { TradeEditorialArtifact } from "../runners/trade-editorial-transformer.js";
 
 interface ArtifactEnvelope<T> {
   sourceId: string;
@@ -12,19 +14,22 @@ interface ArtifactEnvelope<T> {
   payload: T;
 }
 
+export type BulletinReadyArtifact = GrantsBulletinReadyArtifact | TradeBulletinReadyArtifact;
+export type EditorialArtifact = GrantsEditorialArtifact | TradeEditorialArtifact;
+
 export interface ArtifactStore {
   rootDir: string;
   writeSourceCheck: (source: Source, check: SourceCheck) => Promise<string>;
   writeIngestionRun: (source: Source, run: IngestionRun) => Promise<string>;
   writeRawAssets: (source: Source, runId: string, assets: RawAsset[]) => Promise<string>;
   writeNormalizedRecords: (source: Source, runId: string, records: NormalizedRecord[]) => Promise<string>;
-  writeChangeEvent: (source: Source, runId: string, event: GrantsChangeEvent) => Promise<string>;
-  writeBulletinReadyArtifact: (source: Source, artifact: GrantsBulletinReadyArtifact) => Promise<string>;
-  writeEditorialArtifact: (source: Source, artifact: GrantsEditorialArtifact) => Promise<string>;
-  readLatestChangeEvent: (source: Source) => Promise<GrantsChangeEvent | null>;
+  writeChangeEvent: (source: Source, runId: string, event: DeterministicChangeEvent) => Promise<string>;
+  writeBulletinReadyArtifact: (source: Source, artifact: BulletinReadyArtifact) => Promise<string>;
+  writeEditorialArtifact: (source: Source, artifact: EditorialArtifact) => Promise<string>;
+  readLatestChangeEvent: (source: Source) => Promise<DeterministicChangeEvent | null>;
   readLatestNormalizedRecords: (source: Source) => Promise<NormalizedRecord[] | null>;
-  readLatestBulletinReadyArtifact: (source: Source) => Promise<GrantsBulletinReadyArtifact | null>;
-  readLatestEditorialArtifact: (source: Source) => Promise<GrantsEditorialArtifact | null>;
+  readLatestBulletinReadyArtifact: (source: Source) => Promise<BulletinReadyArtifact | null>;
+  readLatestEditorialArtifact: (source: Source) => Promise<EditorialArtifact | null>;
 }
 
 const DIRECTORY_NAMES = {
@@ -39,8 +44,6 @@ async function writeJson<T>(path: string, payload: ArtifactEnvelope<T>): Promise
   await writeFile(path, JSON.stringify(payload, null, 2), "utf8");
   return path;
 }
-
-
 
 async function readLatestBySuffix<T>(directoryPath: string, suffix: string): Promise<T | null> {
   try {
@@ -111,7 +114,7 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
       try {
         const path = join(rootDir, DIRECTORY_NAMES.features, source.id, "latest.change-event.json");
         const content = await readFile(path, "utf8");
-        const parsed = JSON.parse(content) as ArtifactEnvelope<GrantsChangeEvent>;
+        const parsed = JSON.parse(content) as ArtifactEnvelope<DeterministicChangeEvent>;
         return parsed.payload;
       } catch {
         return null;
@@ -124,7 +127,7 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
       try {
         const path = join(rootDir, DIRECTORY_NAMES.published, source.id, "latest.bulletin-ready.json");
         const content = await readFile(path, "utf8");
-        const parsed = JSON.parse(content) as ArtifactEnvelope<GrantsBulletinReadyArtifact>;
+        const parsed = JSON.parse(content) as ArtifactEnvelope<BulletinReadyArtifact>;
         return parsed.payload;
       } catch {
         return null;
@@ -134,7 +137,7 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
       try {
         const path = join(rootDir, DIRECTORY_NAMES.published, source.id, "latest.editorial.json");
         const content = await readFile(path, "utf8");
-        const parsed = JSON.parse(content) as ArtifactEnvelope<GrantsEditorialArtifact>;
+        const parsed = JSON.parse(content) as ArtifactEnvelope<EditorialArtifact>;
         return parsed.payload;
       } catch {
         return null;
