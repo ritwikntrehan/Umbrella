@@ -3,6 +3,7 @@ import { channelsPage } from "./pages/channels.js";
 import { contactPage } from "./pages/contact.js";
 import { grantsPage } from "./pages/grants.js";
 import { homePage } from "./pages/home.js";
+import { manufacturingPage } from "./pages/manufacturing.js";
 import { marketSignalsPage } from "./pages/market-signals.js";
 import { tradePage } from "./pages/trade.js";
 
@@ -38,6 +39,11 @@ const server = createServer((req, res) => {
   if (url === "/channels/market-signals") {
     res.writeHead(200, { "content-type": "text/html" });
     res.end(marketSignalsPage());
+    return;
+  }
+  if (url === "/channels/manufacturing") {
+    res.writeHead(200, { "content-type": "text/html" });
+    res.end(manufacturingPage());
     return;
   }
 

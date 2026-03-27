@@ -1,7 +1,13 @@
-import { grantsChannelConfig, marketSignalsChannelConfig, tradeChannelConfig } from "@umbrella/channel-config";
+import {
+  grantsChannelConfig,
+  manufacturingChannelConfig,
+  marketSignalsChannelConfig,
+  tradeChannelConfig
+} from "@umbrella/channel-config";
 import { renderCard, renderLayout } from "@umbrella/ui";
 import { readLatestGrantsEditorialForWeb } from "../lib/grants-artifact-reader.js";
 import { formatBulletinPeriod } from "../lib/grants-render-helpers.js";
+import { readLatestManufacturingEditorialForWeb } from "../lib/manufacturing-artifact-reader.js";
 import { readLatestMarketSignalsEditorialForWeb } from "../lib/market-signals-artifact-reader.js";
 import { readLatestTradeEditorialForWeb } from "../lib/trade-artifact-reader.js";
 
@@ -35,6 +41,7 @@ function renderHighlight(params: {
 export function homePage(): string {
   const grants = readLatestGrantsEditorialForWeb();
   const trade = readLatestTradeEditorialForWeb();
+  const manufacturing = readLatestManufacturingEditorialForWeb();
   const marketSignals = readLatestMarketSignalsEditorialForWeb();
 
   const body = [
@@ -61,6 +68,15 @@ export function homePage(): string {
       cta: trade.refinedCustomWorkCta?.body
     }),
     renderHighlight({
+      label: manufacturing.channelLabel,
+      pageHref: "/channels/manufacturing",
+      fallbackReason: manufacturing.fallbackReason,
+      period: formatBulletinPeriod(manufacturing),
+      topLine: manufacturing.refinedTopLine?.body,
+      summary: manufacturing.editorialSummary,
+      cta: manufacturing.refinedCustomWorkCta?.body
+    }),
+    renderHighlight({
       label: marketSignals.channelLabel,
       pageHref: "/channels/market-signals",
       fallbackReason: marketSignals.fallbackReason,
@@ -71,7 +87,7 @@ export function homePage(): string {
     }),
     renderCard(
       "Other Channels",
-      `Still placeholder-only while ${grantsChannelConfig.displayName}, ${tradeChannelConfig.displayName}, and ${marketSignalsChannelConfig.displayName} are active web-integrated pilots.`
+      `Still placeholder-only while ${grantsChannelConfig.displayName}, ${tradeChannelConfig.displayName}, ${manufacturingChannelConfig.displayName}, and ${marketSignalsChannelConfig.displayName} are active web-integrated pilots.`
     )
   ].join("\n");
 
