@@ -98,7 +98,7 @@ Exit criteria:
 - Core module divergence stays below agreed threshold.
 
 ### Phase 6 — Channel Expansion Wave 2 + Umbrella Consolidation (4–8 weeks)
-Channels: `econ`, `ma`.
+Channels: `market-signals`, `m-and-a`.
 
 Deliverables:
 - Launch remaining channels.

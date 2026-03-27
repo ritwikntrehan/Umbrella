@@ -5,8 +5,8 @@ Umbrella is a scheduled, deterministic intelligence publishing platform for five
 - `grants` (Grant / Funding Intelligence)
 - `trade` (Trade / Tariff / Sourcing Intelligence)
 - `manufacturing` (Manufacturing / Supplier Ecosystem Intelligence)
-- `econ` (Economic / Labor / Market Signals Intelligence)
-- `ma` (M&A / Business Assessment Intelligence)
+- `market-signals` (Economic / Labor / Market Signals Intelligence)
+- `m-and-a` (M&A / Business Assessment Intelligence)
 
 The system exists to produce source-traceable bulletins and highlights that convert into qualified custom-work inquiries.
 

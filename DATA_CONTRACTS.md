@@ -6,7 +6,7 @@ This file defines implementation contracts for all core objects and stage handof
 ## 2) Canonical Enums and IDs
 
 ### 2.1 Channel IDs
-`grants | trade | manufacturing | econ | ma`
+`grants | trade | manufacturing | market-signals | m-and-a`
 
 ### 2.2 Pipeline stage names
 `Source Registration | Source Check | Deterministic Ingestion | Normalization | Feature Computation | Change Event Generation | Editorial Assembly & Review | Publish & Distribution | Lead Capture`
@@ -19,25 +19,34 @@ This file defines implementation contracts for all core objects and stage handof
 
 ## 3) Core Objects
 
+Naming convention note:
+- TypeScript contracts in `packages/core/src/contracts.ts` use `camelCase` property names.
+- Published JSON artifacts in jobs runners may continue to use `snake_case` field keys where currently implemented.
+
+
 ### 3.1 `Source`
-Required: `source_id`, `channel_id`, `name`, `source_type`, `endpoint`, `check_schedule`, `active`, `schema_version`, `created_at`, `updated_at`.
+Required (current TypeScript contract): `id`, `channel`, `name`, `adapterKey`, `url`, `cadence`, `enabled`.
+
+Optional: `tags`, `notes`.
 
 ### 3.2 `SourceCheck`
-Required: `source_check_id`, `source_id`, `checked_at`, `status`, `fingerprint`, `change_detected`, `run_context`, `schema_version`.
+Required (current TypeScript contract): `id`, `sourceId`, `checkedAt`, `status`.
 
-Status enum: `success | failed`.
+Optional: `fingerprint`, `summary`, `errorMessage`.
 
-Notes:
-- `status` indicates whether the source check operation completed successfully.
-- `change_detected` independently indicates whether a meaningful source update was detected.
+Status enum: `ok | changed | error`.
 
 ### 3.3 `IngestionRun`
-Required: `ingestion_run_id`, `source_id`, `trigger_source_check_id`, `started_at`, `status`, `attempt`, `schema_version`.
+Required (current TypeScript contract): `id`, `sourceId`, `startedAt`, `status`, `rawAssetCount`.
 
-Status enum: `running | success | failed | partial`.
+Optional: `completedAt`, `errorMessage`.
+
+Status enum: `queued | running | success | failed`.
 
 ### 3.4 `RawAsset`
-Required: `raw_asset_id`, `ingestion_run_id`, `source_id`, `storage_uri`, `content_type`, `byte_size`, `checksum`, `captured_at`, `schema_version`.
+Required (current TypeScript contract): `id`, `sourceId`, `ingestionRunId`, `capturedAt`, `checksum`, `contentType`, `uri`.
+
+Optional: `metadata`.
 
 ### 3.5 `NormalizedRecord`
 Required: `normalized_record_id`, `channel_id`, `record_type`, `source_id`, `source_record_key`, `effective_at`, `payload`, `parse_status`, `schema_version`, `lineage`.
@@ -93,7 +102,7 @@ Notes:
 - Umbrella highlights are a second editorial synthesis layer and are not required to be direct copies of channel highlights.
 
 ### 3.13 `ChannelConfig`
-Required: `channel_id`, `display_name`, `active`, `check_policies`, `diff_policies`, `editorial_policies`, `publish_schedule`, `schema_version`.
+Required (current TypeScript contract): `slug`, `displayName`, `description`, `owner`, `enabled`, `sourceIds`, `defaultCadence`.
 
 ### 3.14 `ContactInquiry`
 Required: `contact_inquiry_id`, `submitted_at`, `source_context`, `name`, `email`, `organization`, `inquiry_text`, `consent_flag`, `schema_version`.

@@ -8,8 +8,8 @@ These IDs and names are fixed across configs, schemas, and code:
 | `grants` | Grant / Funding Intelligence |
 | `trade` | Trade / Tariff / Sourcing Intelligence |
 | `manufacturing` | Manufacturing / Supplier Ecosystem Intelligence |
-| `econ` | Economic / Labor / Market Signals Intelligence |
-| `ma` | M&A / Business Assessment Intelligence |
+| `market-signals` | Economic / Labor / Market Signals Intelligence |
+| `m-and-a` | M&A / Business Assessment Intelligence |
 
 No alternative IDs (`funding`, `economic`, etc.) are permitted in stored objects.
 
@@ -94,7 +94,7 @@ Optional empty-state behavior:
 
 **CTA text anchor:** supplier landscape and capability gap map.
 
-### 4.4 `econ` — Economic / Labor / Market Signals Intelligence
+### 4.4 `market-signals` — Economic / Labor / Market Signals Intelligence
 **Primary users:** strategy, site selection, workforce planning, operating environment analysts.
 
 **Core event focus:** labor market inflections, inflation/price changes, regional demand shifts.
@@ -112,7 +112,7 @@ Optional empty-state behavior:
 
 **CTA text anchor:** regional market and workforce scenario brief.
 
-### 4.5 `ma` — M&A / Business Assessment Intelligence
+### 4.5 `m-and-a` — M&A / Business Assessment Intelligence
 **Primary users:** corp dev teams, private equity teams, strategic finance.
 
 **Core event focus:** deal announcements, target quality signals, valuation-relevant operating changes.
@@ -139,4 +139,4 @@ Channel behavior must align to the canonical build/runtime stages:
 
 ## 6) Open Questions
 1. Should any channel require a mandatory twice-weekly bulletin cadence at launch, or stay weekly-until-stable for all five?
-2. Should `ma` include private-company inferred signals at launch, or only directly disclosed/filing-backed signals?
+2. Should `m-and-a` include private-company inferred signals at launch, or only directly disclosed/filing-backed signals?
