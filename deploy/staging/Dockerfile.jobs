@@ -1,13 +1,13 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 COPY apps ./apps
 COPY packages ./packages
 COPY tsconfig.base.json ./
 COPY types ./types
 
-RUN npm ci
+RUN npm install
 
 ENV NODE_ENV=production
 ENV UMBRELLA_DATA_DIR=/var/lib/umbrella/artifacts
