@@ -22,6 +22,15 @@ For the current narrow phase, use the Cloud Run-first path:
 | `UMBRELLA_GCS_ARTIFACT_BUCKET` | Required when `...MODE=gcs` | deploy/runtime | Cloud Storage bucket used for staged artifact persistence. |
 | `UMBRELLA_GCS_ARTIFACT_PREFIX` | No (default `artifacts`) | deploy/runtime | Prefix inside the bucket for `raw/clean/features/published`. |
 | `WEB_PORT` | No (default `3000`) | web | HTTP listener port. |
+| `WEB_SA_EMAIL` | Recommended | deploy-web | Service account identity for Cloud Run web service. |
+| `JOBS_SA_EMAIL` | Recommended | deploy-jobs | Service account identity for Cloud Run jobs runtime. |
+| `SCHEDULER_SA_EMAIL` | Required for scheduler | create-scheduler-job | OAuth caller identity for Cloud Scheduler -> Cloud Run Jobs API. |
+| `GCP_PROJECT` | Yes | all gcp scripts | Staging GCP project id. |
+| `GCP_REGION` | Yes | all gcp scripts | Staging region for Cloud Run/Artifact Registry/Scheduler. |
+| `WEB_IMAGE` / `JOBS_IMAGE` | Yes | deploy scripts | Full Artifact Registry image path per runtime. |
+| `AR_REPOSITORY` / `IMAGE_TAG` | Recommended | build-and-push-images | Repository/tag contract helper values. |
+| `WEB_SERVICE_NAME` / `JOBS_NAME` / `SCHEDULER_NAME` | No (defaults set) | deploy/runtime scripts | Named staging resources. |
+| `UMBRELLA_WEB_BASE_URL` | Optional | web/smoke docs | Explicit web URL override for smoke checks. |
 | `RUNNER_SCHEDULE` | No (default in script) | jobs/scheduler metadata | Cron expression for scheduled jobs execution. |
 | `NODE_ENV` | No (`production`) | jobs, web | Runtime mode. |
 
@@ -41,7 +50,9 @@ When `UMBRELLA_ARTIFACT_STORAGE_MODE=gcs`, the deploy helper scripts configure a
 ./scripts/staging/gcp/deploy-jobs.sh
 ./scripts/staging/gcp/deploy-web.sh
 ./scripts/staging/gcp/run-jobs-manual.sh
+./scripts/staging/gcp/build-and-push-images.sh
 ./scripts/staging/gcp/create-scheduler-job.sh
+./scripts/staging/gcp/smoke-check-staging.sh
 ```
 
 ## Local smoke check

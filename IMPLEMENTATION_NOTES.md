@@ -104,7 +104,7 @@ Focused tests were added for:
 
 ## Deferred (unchanged by this step)
 
-- production-grade GCP deployment execution (staging prep docs/scripts now in-repo)
+- first real staging deployment execution on GCP (implemented for web + jobs bring-up; production still deferred)
 - search
 - archive system
 - publish/distribution workflow
@@ -114,32 +114,37 @@ Focused tests were added for:
 
 ## Next likely step
 
-Execute the first hosted GCP staging deployment using the runbook, validate manual and scheduled Cloud Run job cycles, and record operational learnings before production-focused hardening.
+Execute the real first GCP staging deployment run using the updated runbook/scripts, validate two scheduler-triggered cycles, and then capture operational hardening follow-ups.
 
 
-## Staging deployment preparation update (GCP Cloud Run-first)
+## Staging deployment execution readiness update (GCP Cloud Run-first)
 
-A narrow staging deployment prep layer has been added without revisiting prior architecture decisions.
+A narrow staging execution-readiness step has been completed without revisiting architecture decisions.
 
-### Added in this phase
+### Added/refined in this phase
 
-- concrete plan: `deploy/staging/GCP_STAGING_PLAN.md`
-- bring-up runbook: `deploy/staging/GCP_STAGING_RUNBOOK.md`
-- staging env template: `deploy/staging/gcp/env.staging.example`
-- deploy helpers for Cloud Run service/job and scheduler setup in `scripts/staging/gcp/*.sh`
+- refined bring-up runbook with exact execution order and manual-vs-scripted responsibilities: `deploy/staging/GCP_STAGING_RUNBOOK.md`
+- expanded env contract template with project/region, image naming contract, bucket/prefix, service identities, and resource names: `deploy/staging/gcp/env.staging.example`
+- hardened deployment helpers:
+  - `scripts/staging/gcp/deploy-jobs.sh`
+  - `scripts/staging/gcp/deploy-web.sh`
+  - `scripts/staging/gcp/create-scheduler-job.sh` (create/update behavior)
+- new build/push helper for Artifact Registry image publishing:
+  - `scripts/staging/gcp/build-and-push-images.sh`
+- new staged smoke-check helper validating web reachability and bucket artifacts:
+  - `scripts/staging/gcp/smoke-check-staging.sh`
 
-### Runtime mapping now documented explicitly
+### Runtime mapping kept unchanged
 
 - `apps/web` -> Cloud Run service
 - `apps/jobs` -> Cloud Run Job (run-to-completion)
 - staged artifacts (`raw/clean/features/published`) -> Cloud Storage bucket + prefix
-- scheduled multi-channel cycle + umbrella synthesis -> Cloud Scheduler invoking Cloud Run Job
+- scheduled cycle + umbrella synthesis -> Cloud Scheduler invoking Cloud Run Job
 
-### Minimal storage/config seam added
+### Scope kept intentionally narrow
 
-A small shared storage config resolver now exists in `@umbrella/core`:
-
-- `resolveLocalArtifactDataDir()` preserves existing local behavior
-- optional staging config keys (`UMBRELLA_ARTIFACT_STORAGE_MODE`, `UMBRELLA_ARTIFACT_LOCAL_DIR`, `UMBRELLA_GCS_ARTIFACT_BUCKET`, `UMBRELLA_GCS_ARTIFACT_PREFIX`) are recognized for deployment alignment
-
-This is intentionally not a full storage backend rewrite.
+- staging execution only
+- web + jobs bring-up only
+- no production rollout work
+- no new product channels/features
+- no broad infra rewrite
