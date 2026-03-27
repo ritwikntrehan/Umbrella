@@ -19,6 +19,7 @@ export function renderLayout(title: string, body: string): string {
         <a href="/">Home</a>
         <a href="/channels">Channels</a>
         <a href="/channels/grants">Grants Pilot</a>
+        <a href="/channels/m-and-a">M&A Pilot</a>
         <a href="/contact">Contact</a>
       </nav>
     </header>

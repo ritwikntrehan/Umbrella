@@ -5,6 +5,7 @@ import { grantsPage } from "./pages/grants.js";
 import { homePage } from "./pages/home.js";
 import { manufacturingPage } from "./pages/manufacturing.js";
 import { marketSignalsPage } from "./pages/market-signals.js";
+import { mAndAPage } from "./pages/m-and-a.js";
 import { tradePage } from "./pages/trade.js";
 
 const port = Number(process.env.WEB_PORT ?? 3000);
@@ -44,6 +45,12 @@ const server = createServer((req, res) => {
   if (url === "/channels/manufacturing") {
     res.writeHead(200, { "content-type": "text/html" });
     res.end(manufacturingPage());
+    return;
+  }
+
+  if (url === "/channels/m-and-a") {
+    res.writeHead(200, { "content-type": "text/html" });
+    res.end(mAndAPage());
     return;
   }
 

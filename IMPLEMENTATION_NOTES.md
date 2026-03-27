@@ -1,15 +1,16 @@
-# Implementation Notes - Grants + Trade + Market-Signals + Manufacturing Deterministic Vertical Slices
+# Implementation Notes - Grants + Trade + Market-Signals + Manufacturing + M&A Deterministic Vertical Slices
 
 ## Current state
 
-The platform now proves four channels through the same layered pattern:
+The platform now proves five channels through the same layered pattern:
 
 - grants
 - trade
 - market-signals
 - manufacturing
+- m-and-a
 
-All four channels run:
+All five channels run:
 
 1. source check
 2. ingestion
@@ -19,12 +20,12 @@ All four channels run:
 6. editorial transformation (instruction-driven, deterministic-template)
 7. web rendering from latest editorial artifact
 
-## Manufacturing fourth-channel additions
+## M&A fifth-channel additions
 
 ### Source + adapter
 
-- Added `manufacturingSources` pilot source in channel config (`manufacturing-pilot-network`).
-- Added `MockManufacturingAdapter` with deterministic fixtures supporting:
+- Added `mAndASources` pilot source in channel config (`m-and-a-pilot-briefings`).
+- Added `MockMAndAAdapter` with deterministic fixtures supporting:
   - stable/base run
   - changed run (`?variant=changed`)
   - metadata/source-check support
@@ -32,31 +33,31 @@ All four channels run:
 
 ### Pipeline wiring
 
-- Added jobs commands for manufacturing pipeline and downstream layers:
-  - `manufacturing-source-check`
-  - `manufacturing-pilot`
-  - `manufacturing-bulletin`
-  - `manufacturing-editorial`
+- Added jobs commands for M&A pipeline and downstream layers:
+  - `m-and-a-source-check`
+  - `m-and-a-pilot`
+  - `m-and-a-bulletin`
+  - `m-and-a-editorial`
 
 ### Bulletin-ready + editorial
 
-- Added `ManufacturingBulletinReadyArtifact` assembly using deterministic templates tailored to supplier capability and operational intelligence.
-- Added `MANUFACTURING_EDITORIAL_INSTRUCTIONS_V1` emphasizing concise industrial tone, operational relevance, commercial usefulness, and no-change vs changed run handling.
-- Added manufacturing editorial transformer preserving provenance and deterministic references while keeping LLM mode deferred by default.
+- Added `MAndABulletinReadyArtifact` assembly using deterministic templates tailored to business assessment and diligence relevance.
+- Added `M_AND_A_EDITORIAL_INSTRUCTIONS_V1` emphasizing concise commercially sharp tone, assessment relevance, value-creation usefulness, and no-change vs changed run handling.
+- Added M&A editorial transformer preserving provenance and deterministic references while keeping LLM mode deferred by default.
 
 ### Web
 
-- Added homepage manufacturing highlight module.
-- Added `/channels/manufacturing` page reading latest manufacturing editorial artifact.
-- Added fallback states when no manufacturing artifact exists.
+- Added homepage M&A highlight module.
+- Added `/channels/m-and-a` page reading latest M&A editorial artifact.
+- Added fallback states when no M&A artifact exists.
 
 ## Minimal shared cleanup
 
-- Kept architecture stable and limited shared updates to only what was justified by the fourth real channel.
+- Kept architecture stable and limited shared updates to only what was justified by the fifth real channel.
+- Expanded existing local artifact store union typing to include M&A bulletin/editorial artifacts.
 - Reused existing shared helpers:
   - `apps/web/src/lib/artifact-reader-shared.ts`
   - `apps/web/src/lib/grants-render-helpers.ts`
-- Expanded existing local artifact store union typing to include manufacturing bulletin/editorial artifacts.
 
 ## What is shared vs channel-specific now
 
@@ -74,30 +75,30 @@ Channel-specific:
 - editorial instruction spec and editorial transformer logic
 - channel-specific web reader and channel page
 
-## How to generate and inspect manufacturing artifacts
+## How to generate and inspect M&A artifacts
 
 ```bash
-npm run pilot:manufacturing
-npm run pilot:manufacturing:bulletin
-npm run pilot:manufacturing:editorial
+npm run pilot:m-and-a
+npm run pilot:m-and-a:bulletin
+npm run pilot:m-and-a:editorial
 ```
 
 Artifacts are written under local conventions:
 
-- `data/grants-pilot/raw/manufacturing-pilot-network/*`
-- `data/grants-pilot/clean/manufacturing-pilot-network/*`
-- `data/grants-pilot/features/manufacturing-pilot-network/latest.change-event.json`
-- `data/grants-pilot/published/manufacturing-pilot-network/latest.bulletin-ready.json`
-- `data/grants-pilot/published/manufacturing-pilot-network/latest.editorial.json`
+- `data/grants-pilot/raw/m-and-a-pilot-briefings/*`
+- `data/grants-pilot/clean/m-and-a-pilot-briefings/*`
+- `data/grants-pilot/features/m-and-a-pilot-briefings/latest.change-event.json`
+- `data/grants-pilot/published/m-and-a-pilot-briefings/latest.bulletin-ready.json`
+- `data/grants-pilot/published/m-and-a-pilot-briefings/latest.editorial.json`
 
 ## Tests added
 
-- manufacturing deterministic adapter behavior
-- manufacturing normalization shape
-- manufacturing change detection stable vs changed
-- manufacturing bulletin assembly
-- manufacturing editorial generation
-- manufacturing web fallback behavior
+- M&A deterministic adapter behavior
+- M&A normalization shape
+- M&A change detection stable vs changed
+- M&A bulletin assembly
+- M&A editorial generation
+- M&A web fallback behavior
 
 ## Intentionally still deferred
 
@@ -110,4 +111,4 @@ Artifacts are written under local conventions:
 
 ## Next likely step
 
-Add a narrow channel-local “latest + recent history” artifact listing/read path for each of the four implemented channels while keeping channels independent and still avoiding umbrella synthesis.
+Add a narrow channel-local “latest + recent history” artifact listing/read path for each of the five implemented channels while keeping channels independent and still avoiding umbrella synthesis.
