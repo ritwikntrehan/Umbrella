@@ -1,0 +1,17 @@
+FROM node:20-alpine AS base
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY apps ./apps
+COPY packages ./packages
+COPY tsconfig.base.json ./
+COPY types ./types
+
+RUN npm ci
+
+ENV NODE_ENV=production
+ENV WEB_PORT=3000
+ENV UMBRELLA_DATA_DIR=/var/lib/umbrella/artifacts
+
+EXPOSE 3000
+CMD ["npm", "run", "dev:web"]

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: umbrella-web
+  namespace: umbrella-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: umbrella-web
+  template:
+    metadata:
+      labels:
+        app: umbrella-web
+    spec:
+      containers:
+        - name: web
+          image: umbrella/web:staging
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: umbrella-staging-config
+          volumeMounts:
+            - name: artifacts
+              mountPath: /var/lib/umbrella/artifacts
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: umbrella-artifacts-pvc
