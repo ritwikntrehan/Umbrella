@@ -8,7 +8,7 @@ import { marketSignalsPage } from "./pages/market-signals.js";
 import { mAndAPage } from "./pages/m-and-a.js";
 import { tradePage } from "./pages/trade.js";
 
-const port = Number(process.env.WEB_PORT ?? 3000);
+const port = Number(process.env.PORT ?? process.env.WEB_PORT ?? 3000);
 
 const server = createServer((req, res) => {
   const url = req.url ?? "/";
