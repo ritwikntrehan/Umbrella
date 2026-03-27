@@ -6,6 +6,7 @@ import {
   validateDeterministicPipelineHandoff,
   validateEditorialPublicationIntegrity,
   validateNormalizedRecords,
+  validatePublicationGate,
   validateRawAssets,
   validateSourceCheck,
   validateUmbrellaPublicationIntegrity
@@ -116,6 +117,7 @@ async function runGrantsBulletinAssembly(): Promise<void> {
     changeEvent,
     normalizedRecords
   });
+  validatePublicationGate({ source, bulletin, expectedChannelId: "grants", changeEvent, normalizedRecords });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] grants bulletin-ready artifact assembled");
@@ -148,6 +150,7 @@ async function runTradeBulletinAssembly(): Promise<void> {
     changeEvent,
     normalizedRecords
   });
+  validatePublicationGate({ source, bulletin, expectedChannelId: "trade", changeEvent, normalizedRecords });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] trade bulletin-ready artifact assembled");
@@ -180,6 +183,7 @@ async function runMarketSignalsBulletinAssembly(): Promise<void> {
     changeEvent,
     normalizedRecords
   });
+  validatePublicationGate({ source, bulletin, expectedChannelId: "market-signals", changeEvent, normalizedRecords });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] market-signals bulletin-ready artifact assembled");
@@ -269,6 +273,7 @@ async function runManufacturingBulletinAssembly(): Promise<void> {
     changeEvent,
     normalizedRecords
   });
+  validatePublicationGate({ source, bulletin, expectedChannelId: "manufacturing", changeEvent, normalizedRecords });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] manufacturing bulletin-ready artifact assembled");
@@ -302,6 +307,7 @@ async function runMAndABulletinAssembly(): Promise<void> {
     changeEvent,
     normalizedRecords
   });
+  validatePublicationGate({ source, bulletin, expectedChannelId: "m-and-a", changeEvent, normalizedRecords });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] M&A bulletin-ready artifact assembled");

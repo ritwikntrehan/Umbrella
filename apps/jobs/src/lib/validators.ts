@@ -37,6 +37,10 @@ function asStringRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 }
 
+function assertUnique(values: string[], errorMessage: string): void {
+  assert(new Set(values).size === values.length, errorMessage);
+}
+
 function validatePublicationMetadata(metadata: {
   issue_date: string;
   slug: string;
@@ -185,6 +189,70 @@ export function validateBulletinPublicationIntegrity(params: {
       "Lineage violation: bulletin record_references must exactly match normalized external IDs."
     );
   }
+}
+
+export function validatePublicationGate(params: {
+  source: Source;
+  bulletin: BulletinReadyArtifact;
+  expectedChannelId: Source["channel"];
+  changeEvent: DeterministicChangeEvent;
+  normalizedRecords: NormalizedRecord[];
+}): void {
+  const { source, bulletin, expectedChannelId, changeEvent, normalizedRecords } = params;
+  validateDeterministicPipelineHandoff({
+    source,
+    check: {
+      id: "publication-gate-synthetic-check",
+      sourceId: source.id,
+      checkedAt: changeEvent.detectedAt,
+      status: "changed"
+    },
+    run: {
+      id: "publication-gate-synthetic-run",
+      sourceId: source.id,
+      status: "success",
+      rawAssetCount: normalizedRecords.length > 0 ? 1 : 0,
+      startedAt: changeEvent.detectedAt
+    },
+    rawAssets:
+      normalizedRecords.length > 0
+        ? [
+            {
+              id: "publication-gate-synthetic-raw",
+              sourceId: source.id,
+              ingestionRunId: "publication-gate-synthetic-run",
+              capturedAt: changeEvent.detectedAt,
+              checksum: changeEvent.currentFingerprint,
+              contentType: "json",
+              uri: source.url
+            }
+          ]
+        : [],
+    normalizedRecords,
+    changeEvent
+  });
+  validateBulletinPublicationIntegrity({
+    source,
+    bulletin,
+    expectedChannelId,
+    changeEvent,
+    normalizedRecords
+  });
+
+  const normalizedProvenanceRefs = bulletin.provenance_references
+    .filter((ref) => ref.ref_type === "normalized_record_external_id")
+    .map((ref) => ref.ref_value)
+    .sort();
+  const expectedExternalIds = normalizedRecords.map((record) => record.externalId).sort();
+
+  assertUnique(
+    normalizedProvenanceRefs,
+    "Publication gate violation: normalized_record_external_id provenance references must be unique."
+  );
+  assert(
+    JSON.stringify(normalizedProvenanceRefs) === JSON.stringify(expectedExternalIds),
+    "Publication gate violation: provenance normalized_record_external_id references must be complete."
+  );
 }
 
 export function validateEditorialPublicationIntegrity(params: {
