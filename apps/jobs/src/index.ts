@@ -1,6 +1,15 @@
 import { grantsSources, mAndASources, manufacturingSources, marketSignalsSources, tradeSources } from "@umbrella/channel-config";
 import { createLocalArtifactStore } from "./lib/local-artifact-store.js";
-import { validateNormalizedRecords, validateRawAssets, validateSourceCheck } from "./lib/validators.js";
+import {
+  assertImplementedStageBoundary,
+  validateBulletinPublicationIntegrity,
+  validateDeterministicPipelineHandoff,
+  validateEditorialPublicationIntegrity,
+  validateNormalizedRecords,
+  validateRawAssets,
+  validateSourceCheck,
+  validateUmbrellaPublicationIntegrity
+} from "./lib/validators.js";
 import { runChangeDetection } from "./runners/change-detection-runner.js";
 import { assembleGrantsBulletinArtifact } from "./runners/grants-bulletin-assembler.js";
 import { transformGrantsBulletinToEditorial } from "./runners/grants-editorial-transformer.js";
@@ -18,27 +27,44 @@ import { transformTradeBulletinToEditorial } from "./runners/trade-editorial-tra
 import { assembleUmbrellaSynthesisArtifact } from "./runners/umbrella-synthesis-assembler.js";
 import { readUmbrellaSynthesisInput } from "./runners/umbrella-synthesis-input-reader.js";
 
+function logStageBoundary(stage: string, boundary: "enter" | "exit"): void {
+  console.log(`[jobs] stage-boundary ${boundary} :: ${stage}`);
+}
+
 async function runDeterministicPipeline(source = grantsSources[0]): Promise<void> {
   if (!source) throw new Error("No source configured for deterministic pipeline.");
 
   const store = await createLocalArtifactStore();
 
+  assertImplementedStageBoundary("source-check");
+  logStageBoundary("source-check", "enter");
   const check = await runSourceCheck(source);
   validateSourceCheck(check);
   const sourceCheckPath = await store.writeSourceCheck(source, check);
+  logStageBoundary("source-check", "exit");
 
+  assertImplementedStageBoundary("deterministic-ingestion");
+  logStageBoundary("deterministic-ingestion", "enter");
   const { run, rawAssets } = await runIngestion(source);
   validateRawAssets(rawAssets);
   const ingestionRunPath = await store.writeIngestionRun(source, run);
   const rawAssetsPath = await store.writeRawAssets(source, run.id, rawAssets);
+  logStageBoundary("deterministic-ingestion", "exit");
 
+  assertImplementedStageBoundary("normalization");
+  logStageBoundary("normalization", "enter");
   const normalized = await runNormalization(source, rawAssets);
   validateNormalizedRecords(normalized);
   const normalizedPath = await store.writeNormalizedRecords(source, run.id, normalized);
+  logStageBoundary("normalization", "exit");
 
+  assertImplementedStageBoundary("change-event-generation");
+  logStageBoundary("change-event-generation", "enter");
   const previousEvent = await store.readLatestChangeEvent(source);
   const changeEvent = runChangeDetection(source, normalized, previousEvent);
+  validateDeterministicPipelineHandoff({ source, check, run, rawAssets, normalizedRecords: normalized, changeEvent });
   const changeEventPath = await store.writeChangeEvent(source, run.id, changeEvent);
+  logStageBoundary("change-event-generation", "exit");
 
   console.log(`[jobs] ${source.channel} deterministic pipeline complete`);
   console.log(`  source=${source.id}`);
@@ -82,6 +108,14 @@ async function runGrantsBulletinAssembly(): Promise<void> {
   if (!normalizedRecords) throw new Error("No normalized records artifact found. Run grants pilot first.");
 
   const bulletin = assembleGrantsBulletinArtifact({ source, changeEvent, normalizedRecords });
+  assertImplementedStageBoundary("publish-and-distribution");
+  validateBulletinPublicationIntegrity({
+    source,
+    bulletin,
+    expectedChannelId: "grants",
+    changeEvent,
+    normalizedRecords
+  });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] grants bulletin-ready artifact assembled");
@@ -106,6 +140,14 @@ async function runTradeBulletinAssembly(): Promise<void> {
   if (!normalizedRecords) throw new Error("No normalized records artifact found. Run trade pilot first.");
 
   const bulletin = assembleTradeBulletinArtifact({ source, changeEvent, normalizedRecords });
+  assertImplementedStageBoundary("publish-and-distribution");
+  validateBulletinPublicationIntegrity({
+    source,
+    bulletin,
+    expectedChannelId: "trade",
+    changeEvent,
+    normalizedRecords
+  });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] trade bulletin-ready artifact assembled");
@@ -130,6 +172,14 @@ async function runMarketSignalsBulletinAssembly(): Promise<void> {
   if (!normalizedRecords) throw new Error("No normalized records artifact found. Run market-signals pilot first.");
 
   const bulletin = assembleMarketSignalsBulletinArtifact({ source, changeEvent, normalizedRecords });
+  assertImplementedStageBoundary("publish-and-distribution");
+  validateBulletinPublicationIntegrity({
+    source,
+    bulletin,
+    expectedChannelId: "market-signals",
+    changeEvent,
+    normalizedRecords
+  });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] market-signals bulletin-ready artifact assembled");
@@ -153,6 +203,8 @@ async function runGrantsEditorialAssembly(): Promise<void> {
   }
 
   const editorial = transformGrantsBulletinToEditorial({ bulletin });
+  assertImplementedStageBoundary("editorial-assembly-and-review");
+  validateEditorialPublicationIntegrity({ source, editorial, bulletin, expectedChannelId: "grants" });
   const artifactPath = await store.writeEditorialArtifact(source, editorial);
 
   console.log("[jobs] grants editorial artifact assembled");
@@ -170,6 +222,8 @@ async function runTradeEditorialAssembly(): Promise<void> {
   }
 
   const editorial = transformTradeBulletinToEditorial({ bulletin });
+  assertImplementedStageBoundary("editorial-assembly-and-review");
+  validateEditorialPublicationIntegrity({ source, editorial, bulletin, expectedChannelId: "trade" });
   const artifactPath = await store.writeEditorialArtifact(source, editorial);
 
   console.log("[jobs] trade editorial artifact assembled");
@@ -187,6 +241,8 @@ async function runMarketSignalsEditorialAssembly(): Promise<void> {
   }
 
   const editorial = transformMarketSignalsBulletinToEditorial({ bulletin });
+  assertImplementedStageBoundary("editorial-assembly-and-review");
+  validateEditorialPublicationIntegrity({ source, editorial, bulletin, expectedChannelId: "market-signals" });
   const artifactPath = await store.writeEditorialArtifact(source, editorial);
 
   console.log("[jobs] market-signals editorial artifact assembled");
@@ -205,6 +261,14 @@ async function runManufacturingBulletinAssembly(): Promise<void> {
   if (!normalizedRecords) throw new Error("No normalized records artifact found. Run manufacturing pilot first.");
 
   const bulletin = assembleManufacturingBulletinArtifact({ source, changeEvent, normalizedRecords });
+  assertImplementedStageBoundary("publish-and-distribution");
+  validateBulletinPublicationIntegrity({
+    source,
+    bulletin,
+    expectedChannelId: "manufacturing",
+    changeEvent,
+    normalizedRecords
+  });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] manufacturing bulletin-ready artifact assembled");
@@ -230,6 +294,14 @@ async function runMAndABulletinAssembly(): Promise<void> {
   if (!normalizedRecords) throw new Error("No normalized records artifact found. Run M&A pilot first.");
 
   const bulletin = assembleMAndABulletinArtifact({ source, changeEvent, normalizedRecords });
+  assertImplementedStageBoundary("publish-and-distribution");
+  validateBulletinPublicationIntegrity({
+    source,
+    bulletin,
+    expectedChannelId: "m-and-a",
+    changeEvent,
+    normalizedRecords
+  });
   const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
 
   console.log("[jobs] M&A bulletin-ready artifact assembled");
@@ -253,6 +325,8 @@ async function runMAndAEditorialAssembly(): Promise<void> {
   }
 
   const editorial = transformMAndABulletinToEditorial({ bulletin });
+  assertImplementedStageBoundary("editorial-assembly-and-review");
+  validateEditorialPublicationIntegrity({ source, editorial, bulletin, expectedChannelId: "m-and-a" });
   const artifactPath = await store.writeEditorialArtifact(source, editorial);
 
   console.log("[jobs] M&A editorial artifact assembled");
@@ -270,6 +344,8 @@ async function runManufacturingEditorialAssembly(): Promise<void> {
   }
 
   const editorial = transformManufacturingBulletinToEditorial({ bulletin });
+  assertImplementedStageBoundary("editorial-assembly-and-review");
+  validateEditorialPublicationIntegrity({ source, editorial, bulletin, expectedChannelId: "manufacturing" });
   const artifactPath = await store.writeEditorialArtifact(source, editorial);
 
   console.log("[jobs] manufacturing editorial artifact assembled");
@@ -278,8 +354,10 @@ async function runManufacturingEditorialAssembly(): Promise<void> {
 
 async function runUmbrellaSynthesisAssembly(): Promise<void> {
   const store = await createLocalArtifactStore();
+  assertImplementedStageBoundary("umbrella-synthesis");
   const input = await readUmbrellaSynthesisInput(store);
   const artifact = assembleUmbrellaSynthesisArtifact({ input });
+  validateUmbrellaPublicationIntegrity(artifact);
   const artifactPath = await store.writeUmbrellaSynthesisArtifact(artifact);
 
   console.log("[jobs] umbrella synthesis artifact assembled");
