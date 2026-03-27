@@ -1,146 +1,117 @@
-# Implementation Notes - Grants + Trade + Market-Signals + Manufacturing + M&A Deterministic Vertical Slices
+# Implementation Notes - First Umbrella Cross-Channel Synthesis Layer
 
 ## Current state
 
-The platform now proves five channels through the same layered pattern:
+The repository now includes:
 
-- grants
-- trade
-- market-signals
-- manufacturing
-- m-and-a
+- five implemented channel slices (grants, trade, market-signals, manufacturing, m-and-a)
+- a deterministic umbrella synthesis layer that consumes the latest channel editorial artifacts
+- homepage rendering that uses umbrella synthesis as the primary summary layer
 
-All five channels run:
+This keeps the architecture incremental:
 
-1. source check
-2. ingestion
-3. normalization
-4. change detection
-5. bulletin-ready assembly (deterministic)
-6. editorial transformation (instruction-driven, deterministic-template)
-7. web rendering from latest editorial artifact
+`channel editorial artifacts -> umbrella synthesis artifact -> homepage rendering`
 
-## Monorepo hardening updates (current step)
+## What the umbrella synthesis artifact is
 
-This step intentionally avoided product-scope expansion and focused only on run/build/test stability in the existing monorepo.
+A new umbrella-level published artifact is now produced at:
 
-### What was tightened
+- `published/umbrella-synthesis/latest.umbrella-synthesis.json`
 
-- Workspace package entrypoints for local development:
-  - `@umbrella/*` package entrypoints now resolve to `src/index.ts` for source-first local imports.
-  - This removes fragile local dependence on manually prebuilt `dist/index.js` just to run tests/jobs/web with `tsx`.
-- TypeScript workspace coherence:
-  - Removed per-package/app `rootDir` constraints that were conflicting with workspace source imports.
-  - Added shared ambient node typings file under `types/globals.d.ts`.
-  - Updated each app/package `tsconfig.json` to include that shared types path.
-- Root command ergonomics:
-  - Added explicit root scripts for `dev:jobs`, `dev:web`, `test`, `test:jobs`.
-  - Made `build` deterministic via `build:packages` then `build:apps`.
+It contains:
 
-### Intended local workflow now
+- `umbrella_artifact_id`
+- `generated_at`
+- `source_channel_artifacts`
+- `included_channels`
+- `missing_channels`
+- `top_updates_across_channels`
+- `short_umbrella_summary`
+- `notable_patterns`
+- `custom_work_cta`
+- `provenance_references`
+- publication metadata placeholders (`status`, `slug`, `canonical_url`, `publish_timestamp`, etc.)
+- deterministic `content_hash`
 
-1. `npm install`
-2. `npm run typecheck`
-3. `npm run test`
-4. `npm run build`
-5. Run channel commands (`pilot:*`) and web (`dev:web`) as needed.
+## How it differs from channel editorial artifacts
 
-### Why this is narrow
+Channel editorial artifacts are channel-specific refinement outputs.
 
-- No new channels.
-- No umbrella synthesis.
-- No deployment/publishing/auth/search/archive additions.
-- No architecture rewrite; only workspace/package/ts/script hardening.
+Umbrella synthesis is a second editorial layer that:
 
-## M&A fifth-channel additions
+- reads only the latest channel editorials
+- prioritizes and compresses updates across channels deterministically
+- preserves source-channel and provenance links
+- emits cross-channel summary/patterns/CTA for homepage consumption
 
-### Source + adapter
+## Deterministic synthesis behavior
 
-- Added `mAndASources` pilot source in channel config (`m-and-a-pilot-briefings`).
-- Added `MockMAndAAdapter` with deterministic fixtures supporting:
-  - stable/base run
-  - changed run (`?variant=changed`)
-  - metadata/source-check support
-  - fetch + normalize + diff fingerprint
+Current umbrella synthesis is intentionally deterministic/template-driven:
 
-### Pipeline wiring
+- no live LLM calls
+- explicit scoring/prioritization rules
+- stable ordering and hash behavior for identical inputs
+- sparse-input-safe handling for missing/partial channels
 
-- Added jobs commands for M&A pipeline and downstream layers:
-  - `m-and-a-source-check`
-  - `m-and-a-pilot`
-  - `m-and-a-bulletin`
-  - `m-and-a-editorial`
+## Umbrella instruction spec
 
-### Bulletin-ready + editorial
+Added `UMBRELLA_SYNTHESIS_INSTRUCTIONS_V1` covering:
 
-- Added `MAndABulletinReadyArtifact` assembly using deterministic templates tailored to business assessment and diligence relevance.
-- Added `M_AND_A_EDITORIAL_INSTRUCTIONS_V1` emphasizing concise commercially sharp tone, assessment relevance, value-creation usefulness, and no-change vs changed run handling.
-- Added M&A editorial transformer preserving provenance and deterministic references while keeping LLM mode deferred by default.
+- tone
+- compression style
+- cross-channel prioritization logic
+- sparse-input behavior
+- emphasize/avoid guidance
+- CTA style guidance
+- provenance handling rules
+- deferred optional LLM integration notes
 
-### Web
+## Jobs wiring
 
-- Added homepage M&A highlight module.
-- Added `/channels/m-and-a` page reading latest M&A editorial artifact.
-- Added fallback states when no M&A artifact exists.
+Added jobs commands:
 
-## Minimal shared cleanup
+- `umbrella-synthesis`
+- `inspect-umbrella-synthesis`
 
-- Kept architecture stable and limited shared updates to only what was justified by the fifth real channel.
-- Expanded existing local artifact store union typing to include M&A bulletin/editorial artifacts.
-- Reused existing shared helpers:
-  - `apps/web/src/lib/artifact-reader-shared.ts`
-  - `apps/web/src/lib/grants-render-helpers.ts`
+Root scripts are also wired so these can be run directly from the monorepo root.
 
-## What is shared vs channel-specific now
+## Homepage integration
 
-Shared:
+Homepage now:
 
-- deterministic pipeline runners (source-check, ingestion, normalization, change detection)
-- artifact storage conventions (`raw/`, `clean/`, `features/`, `published/`)
-- deterministic change-event contract (`DeterministicChangeEvent`)
-- web artifact envelope parsing and common render helpers
+- reads latest umbrella synthesis artifact
+- renders umbrella summary/top updates/notable patterns/CTA first
+- keeps channel modules as secondary contributors
+- includes fallback messaging when umbrella synthesis is not available
 
-Channel-specific:
+## Fallback behavior
 
-- source config and adapter fixture details
-- bulletin-ready assembler text and watchlist framing
-- editorial instruction spec and editorial transformer logic
-- channel-specific web reader and channel page
+Handled states:
 
-## How to generate and inspect M&A artifacts
-
-```bash
-npm run pilot:m-and-a
-npm run pilot:m-and-a:bulletin
-npm run pilot:m-and-a:editorial
-```
-
-Artifacts are written under local conventions:
-
-- `data/grants-pilot/raw/m-and-a-pilot-briefings/*`
-- `data/grants-pilot/clean/m-and-a-pilot-briefings/*`
-- `data/grants-pilot/features/m-and-a-pilot-briefings/latest.change-event.json`
-- `data/grants-pilot/published/m-and-a-pilot-briefings/latest.bulletin-ready.json`
-- `data/grants-pilot/published/m-and-a-pilot-briefings/latest.editorial.json`
+- no channel editorials available
+- partial channel availability
+- sparse synthesis outputs (empty updates/patterns)
 
 ## Tests added
 
-- M&A deterministic adapter behavior
-- M&A normalization shape
-- M&A change detection stable vs changed
-- M&A bulletin assembly
-- M&A editorial generation
-- M&A web fallback behavior
+Focused tests were added for:
 
-## Intentionally still deferred
+- umbrella synthesis input reading
+- umbrella synthesis output with all five channels
+- umbrella synthesis output with fewer channels
+- stable output/hash for identical inputs
+- web homepage and umbrella reader fallback behavior
 
-- umbrella cross-channel synthesis
-- search/archive systems
+## Deferred (unchanged by this step)
+
+- GCP deployment
+- search
+- archive system
 - publish/distribution workflow
 - approval/revision workflow
-- broad all-channel abstraction pass
-- GCP deployment
+- auth system
+- required live LLM synthesis
 
 ## Next likely step
 
-Add a narrow channel-local “latest + recent history” artifact listing/read path for each of the five implemented channels while keeping channels independent and still avoiding umbrella synthesis.
+Add an optional LLM-backed umbrella synthesis mode behind the existing umbrella instruction contract, while preserving deterministic fallback and provenance guarantees.

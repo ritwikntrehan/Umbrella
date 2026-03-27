@@ -40,7 +40,9 @@
     "pilot:m-and-a": "npm run pilot:m-and-a -w @umbrella/jobs",
     "pilot:m-and-a:source-check": "npm run pilot:m-and-a:source-check -w @umbrella/jobs",
     "pilot:m-and-a:bulletin": "npm run pilot:m-and-a:bulletin -w @umbrella/jobs",
-    "pilot:m-and-a:editorial": "npm run pilot:m-and-a:editorial -w @umbrella/jobs"
+    "pilot:m-and-a:editorial": "npm run pilot:m-and-a:editorial -w @umbrella/jobs",
+    "umbrella-synthesis": "npm run umbrella-synthesis -w @umbrella/jobs",
+    "inspect-umbrella-synthesis": "npm run inspect-umbrella-synthesis -w @umbrella/jobs"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
