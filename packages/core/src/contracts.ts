@@ -1,5 +1,11 @@
 export type ChannelSlug = "grants" | "trade" | "manufacturing" | "market-signals" | "m-and-a";
 
+export const CANONICAL_CHANNEL_SLUGS = ["grants", "trade", "manufacturing", "market-signals", "m-and-a"] as const satisfies readonly ChannelSlug[];
+
+export type CoreContractObjectName = "Source" | "SourceCheck" | "IngestionRun" | "RawAsset" | "ChannelConfig";
+
+export const CORE_CONTRACT_OBJECT_NAMES = ["Source", "SourceCheck", "IngestionRun", "RawAsset", "ChannelConfig"] as const satisfies readonly CoreContractObjectName[];
+
 export interface Source {
   id: string;
   channel: ChannelSlug;
