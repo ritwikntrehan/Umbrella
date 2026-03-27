@@ -7,9 +7,15 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev:jobs",
+    "dev:jobs": "npm run dev -w @umbrella/jobs",
+    "dev:web": "npm run dev -w @umbrella/web",
+    "build": "npm run build:packages && npm run build:apps",
+    "build:packages": "npm run build -w @umbrella/core && npm run build -w @umbrella/channel-config && npm run build -w @umbrella/source-adapters && npm run build -w @umbrella/ui",
+    "build:apps": "npm run build -w @umbrella/jobs && npm run build -w @umbrella/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test -w @umbrella/jobs && npm run test -w @umbrella/web",
+    "test:jobs": "npm run test -w @umbrella/jobs",
     "lint": "npm run lint --workspaces --if-present",
     "pilot:grants": "npm run pilot:grants -w @umbrella/jobs",
     "pilot:grants:source-check": "npm run pilot:grants:source-check -w @umbrella/jobs",
