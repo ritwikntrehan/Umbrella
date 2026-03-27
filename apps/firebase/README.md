@@ -20,3 +20,14 @@ Firebase-specific app root for deploying Umbrella services.
 1. Set the real Firebase project id in `.firebaserc`.
 2. Add production Hosting assets to `hosting/`.
 3. Implement function handlers in `functions/src/index.ts`.
+
+## App Hosting container readiness
+
+This app root now includes `server.mjs` and a `start` script that binds to `0.0.0.0` and `process.env.PORT` (default `8080`) so Firebase App Hosting/Cloud Run health checks can succeed.
+
+Local check:
+
+```bash
+npm run start -w @umbrella/firebase
+```
+

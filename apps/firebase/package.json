@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "start": "node server.mjs",
+    "dev": "PORT=8080 node server.mjs",
     "firebase:deploy": "firebase deploy --config firebase.json",
     "firebase:emulators": "firebase emulators:start --config firebase.json"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
