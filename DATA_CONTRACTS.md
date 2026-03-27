@@ -17,6 +17,9 @@ This file defines implementation contracts for all core objects and stage handof
 - `features` (deterministic derived outputs)
 - `published` (approved publication objects/artifacts)
 
+### 2.4 Job execution modes
+`batch-scheduled | batch-manual-backfill`
+
 ## 3) Core Objects
 
 Naming convention note:
@@ -152,3 +155,14 @@ Note: this version does not define a separate approval workflow object model.
 ## 8) Open Questions
 1. Should `distribution_targets` be normalized into a separate table for delivery auditing, or remain embedded per `Bulletin`/`Highlight`?
 2. Should `content_hash` be computed on rendered output only, or both markdown source and rendered output?
+
+## 9) Operational Contract Shapes
+The following TypeScript contracts in `packages/core/src/contracts.ts` are normative for runner operations and observability:
+- `JobOrchestrationMode`
+- `RetryAndIdempotencyPolicy`
+- `ArtifactRetentionPolicy`
+- `PipelineSLOs`
+- `RunnerStructuredLogFields`
+- `RunnerMetricDimensions`
+
+Policy values (targets, retention windows, and required fields) are defined in `OPERATIONS_STANDARDS.md`.

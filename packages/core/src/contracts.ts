@@ -58,3 +58,60 @@ export interface ChannelConfig {
   sourceIds: string[];
   defaultCadence: Source["cadence"];
 }
+
+export type JobOrchestrationMode = "batch-scheduled" | "batch-manual-backfill";
+
+export interface RetryAndIdempotencyPolicy {
+  maxAttempts: number;
+  initialBackoffMs: number;
+  maxBackoffMs: number;
+  backoffMultiplier: number;
+  jitterMode: "none" | "full";
+  idempotencyKeyFormat: "source-and-window" | "run-id";
+  duplicateRunDisposition: "skip" | "resume";
+}
+
+export interface ArtifactRetentionPolicy {
+  rawDays: number;
+  cleanDays: number;
+  featuresDays: number;
+  publishedDays: number | "indefinite";
+  legalHoldOverridesDefault: boolean;
+}
+
+export interface PipelineSLOs {
+  ingestionSuccessRateTarget: number;
+  ingestionSuccessRateWindowDays: number;
+  p95PipelineLatencyMinutesTarget: number;
+  p95PipelineLatencyWindowDays: number;
+  publishDeadlineAdherenceTarget: number;
+  publishDeadlineAdherenceWindowDays: number;
+}
+
+export interface RunnerStructuredLogFields {
+  timestamp: string;
+  level: "debug" | "info" | "warn" | "error";
+  service: string;
+  runner: string;
+  stage: string;
+  executionMode: JobOrchestrationMode;
+  runId: string;
+  attempt: number;
+  traceId: string;
+  channel: ChannelSlug;
+  sourceId: string;
+  idempotencyKey: string;
+  status: "start" | "success" | "failure" | "retry" | "skip";
+  durationMs?: number;
+  errorCode?: string;
+}
+
+export interface RunnerMetricDimensions {
+  service: string;
+  runner: string;
+  stage: string;
+  executionMode: JobOrchestrationMode;
+  channel: ChannelSlug;
+  sourceId: string;
+  status: "success" | "failure" | "timeout" | "skipped";
+}
