@@ -1,88 +1,161 @@
-# GCP staging runbook (first bring-up)
+# GCP staging runbook (first real execution)
 
-This runbook is intentionally short and practical for the first hosted staging cycle.
+This runbook is intentionally narrow: **first real staging bring-up for web + jobs only**.
 
 ## 0) Preconditions
 
-- GCP project and region selected
-- Cloud Run + Cloud Scheduler + Artifact Registry + Cloud Storage APIs enabled
-- Container images built from:
-  - `deploy/staging/Dockerfile.web`
-  - `deploy/staging/Dockerfile.jobs`
-- Staging env values prepared from `deploy/staging/gcp/env.staging.example`
+Already completed (from previous task):
 
-## 1) Initial staging bring-up
+- GCP project exists
+- billing is enabled
+- Cloud Storage staging bucket exists
+- Artifact Registry Docker repository exists
+- staging service accounts exist
 
-1. Create artifact bucket (`gs://<bucket>`).
-2. Create service accounts for web/job/scheduler and bind least-privilege IAM.
-3. Deploy Cloud Run Job first (`umbrella-jobs-staging`).
-4. Deploy Cloud Run service second (`umbrella-web-staging`).
+Required local tooling:
 
-## 2) Deploy web
+- `gcloud` authenticated to the staging project
+- Docker available for image builds
 
-Deploy Cloud Run service with env vars:
+Prepare env file from template:
+
+```bash
+cp deploy/staging/gcp/env.staging.example .env.staging
+# fill values, then:
+set -a; source ./.env.staging; set +a
+```
+
+## 1) Manual inputs vs scripted inputs
+
+### Fill manually in GCP console (or one-time CLI if preferred)
+
+- verify APIs are enabled: Cloud Run, Artifact Registry, Cloud Scheduler, Cloud Storage, IAM
+- verify bucket exists: `gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}`
+- verify service accounts and IAM bindings:
+  - `WEB_SA_EMAIL`
+  - `JOBS_SA_EMAIL`
+  - `SCHEDULER_SA_EMAIL`
+
+### Supplied via env + scripts
+
+- project/region: `GCP_PROJECT`, `GCP_REGION`
+- image contract: `AR_REPOSITORY`, `WEB_IMAGE`, `JOBS_IMAGE`
+- artifact contract: `UMBRELLA_GCS_ARTIFACT_BUCKET`, `UMBRELLA_GCS_ARTIFACT_PREFIX`, `UMBRELLA_ARTIFACT_LOCAL_DIR`
+- runtime metadata: `UMBRELLA_GCP_PROJECT`, `UMBRELLA_GCP_REGION`, `RUNNER_SCHEDULE`
+
+## 2) Bring-up order (do not enable scheduler yet)
+
+1. Build + push images.
+2. Deploy Cloud Run Job.
+3. Run jobs manually once.
+4. Validate artifacts in Cloud Storage.
+5. Deploy Cloud Run web service.
+6. Validate homepage + channel pages.
+7. Run staging smoke check.
+8. Only then create/update scheduler.
+
+## 3) Build and push images
+
+```bash
+./scripts/staging/gcp/build-and-push-images.sh
+```
+
+This prints final `WEB_IMAGE` and `JOBS_IMAGE` values.
+If you use custom tags, set them before running:
+
+```bash
+export IMAGE_TAG=staging-20260327-01
+```
+
+## 4) Deploy jobs first
+
+```bash
+./scripts/staging/gcp/deploy-jobs.sh
+```
+
+This deploys Cloud Run Job `JOBS_NAME` and wires:
 
 - `UMBRELLA_ARTIFACT_STORAGE_MODE=gcs`
-- `UMBRELLA_ARTIFACT_LOCAL_DIR=/var/lib/umbrella/artifacts`
-- `UMBRELLA_GCS_ARTIFACT_BUCKET`, `UMBRELLA_GCS_ARTIFACT_PREFIX`
-- `WEB_PORT=3000`
+- Cloud Storage volume mount at `UMBRELLA_ARTIFACT_LOCAL_DIR`
+- `UMBRELLA_DATA_DIR` alias for current code path compatibility
 
-If artifacts are not yet present, homepage/channel pages should show fallback guidance.
+## 5) Manual job execution before scheduler
 
-## 3) Run jobs manually first
+```bash
+./scripts/staging/gcp/run-jobs-manual.sh
+```
 
-Before scheduling, execute the Cloud Run job manually one time.
+Expected output behavior:
 
-Expected job behavior:
+- 5 channel cycles run
+- umbrella synthesis runs
+- artifacts written to staged bucket path
 
-1. run full channel cycle (`scripts/staging/run-staging-cycle.sh`)
-2. generate latest `published/*` artifacts
-3. writes artifacts through the Cloud Storage-backed volume mount
+## 6) Validate staged artifacts
 
-## 4) Validate artifact generation
+Expected paths:
 
-Confirm bucket paths exist:
+- `gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}/${UMBRELLA_GCS_ARTIFACT_PREFIX}/raw/`
+- `gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}/${UMBRELLA_GCS_ARTIFACT_PREFIX}/clean/`
+- `gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}/${UMBRELLA_GCS_ARTIFACT_PREFIX}/features/`
+- `gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}/${UMBRELLA_GCS_ARTIFACT_PREFIX}/published/`
+- `gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}/${UMBRELLA_GCS_ARTIFACT_PREFIX}/published/umbrella-synthesis/latest.umbrella-synthesis.json`
 
-- `raw/`
-- `clean/`
-- `features/`
-- `published/`
-- `published/umbrella-synthesis/latest.umbrella-synthesis.json`
+Quick checks:
 
-Also spot-check one channel editorial artifact:
+```bash
+gcloud storage ls "gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}/${UMBRELLA_GCS_ARTIFACT_PREFIX}/published/umbrella-synthesis/latest.umbrella-synthesis.json"
+gcloud storage ls "gs://${UMBRELLA_GCS_ARTIFACT_BUCKET}/${UMBRELLA_GCS_ARTIFACT_PREFIX}/published/grants/latest.editorial.json"
+```
 
-- `published/grants/latest.editorial.json`
+## 7) Deploy web
 
-## 5) Validate homepage rendering
+```bash
+./scripts/staging/gcp/deploy-web.sh
+```
 
-Open web root (`/`) and confirm:
+Resolve service URL:
 
-- umbrella synthesis summary block is present
-- top updates and notable patterns render
+```bash
+gcloud run services describe "${WEB_SERVICE_NAME}" \
+  --project="${GCP_PROJECT}" \
+  --region="${GCP_REGION}" \
+  --format='value(status.url)'
+```
 
-## 6) Validate channel rendering
+If desired, set `UMBRELLA_WEB_BASE_URL` to that URL for explicit smoke-check targeting.
 
-Open:
+## 8) Validate staged web
 
-- `/channels/grants`
-- `/channels/trade`
-- `/channels/market-signals`
-- `/channels/manufacturing`
-- `/channels/m-and-a`
+Validate:
 
-Confirm each page shows latest editorial content (or deterministic fallback if source sparse).
+- `/` reachable and shows umbrella synthesis layer
+- `/channels/grants` reachable and renders staged output
+- other channels load (`trade`, `market-signals`, `manufacturing`, `m-and-a`)
 
-## 7) Enable scheduled runs
+Run scripted smoke checks:
 
-After manual validation passes:
+```bash
+./scripts/staging/gcp/smoke-check-staging.sh
+```
 
-1. Create Cloud Scheduler HTTP job to invoke Cloud Run job execution API.
-2. Use service-account OAuth call to the Cloud Run Jobs API endpoint.
-3. Start with conservative cadence (for example every 30 minutes).
-4. Observe two full scheduled cycles before considering this staging loop healthy.
+## 9) Enable scheduler only after manual validation
 
-## 8) Failure handling quick actions
+When steps 1-8 are clean:
 
-- Job fails: disable scheduler, run job manually, inspect Cloud Run logs.
-- Web regressions: roll back Cloud Run service traffic to previous revision.
-- Bad artifact push: restore prior bucket object version/snapshot and redeploy prior job image if needed.
+```bash
+./scripts/staging/gcp/create-scheduler-job.sh
+```
+
+Notes:
+
+- script is idempotent (`create` or `update`)
+- start with conservative cadence (`RUNNER_SCHEDULE`)
+- observe at least two scheduler-triggered runs before considering staging healthy
+
+## 10) Deferred (intentionally unchanged)
+
+- production deployment and hardening
+- Kubernetes/Terraform migration
+- new product features (search/auth/archive/publish workflows)
+- broad infra rewrite

@@ -173,23 +173,30 @@ Then open:
 If artifacts are missing, pages show fallback guidance with generation commands.
 
 
-## GCP staging deployment prep (Cloud Run-first)
+## GCP staging first execution (Cloud Run-first)
 
-This repository now includes a practical **staging deployment preparation** path for GCP using:
+The repo is now ready for the **first real staging execution run** on existing GCP staging resources, using:
 
 - Cloud Run service for `apps/web`
 - Cloud Run Job for `apps/jobs`
-- Cloud Scheduler trigger for scheduled job runs
-- Cloud Storage bucket for staged artifact persistence
+- Cloud Scheduler trigger (enabled only after manual validation)
+- Cloud Storage-backed artifact persistence
 
-Start with:
+Use:
 
 - `deploy/staging/GCP_STAGING_PLAN.md`
 - `deploy/staging/GCP_STAGING_RUNBOOK.md`
 - `deploy/staging/gcp/env.staging.example`
-- `scripts/staging/gcp/*.sh`
+- `scripts/staging/gcp/build-and-push-images.sh`
+- `scripts/staging/gcp/deploy-jobs.sh`
+- `scripts/staging/gcp/run-jobs-manual.sh`
+- `scripts/staging/gcp/deploy-web.sh`
+- `scripts/staging/gcp/smoke-check-staging.sh`
+- `scripts/staging/gcp/create-scheduler-job.sh`
 
-This phase is prep-only and keeps local development intact (default local artifact root behavior is unchanged).
+Bring-up order is intentionally strict: build/push -> deploy jobs -> run jobs manually -> validate storage artifacts -> deploy web -> validate pages/smoke checks -> enable scheduler.
+
+This keeps local-first development intact (default local artifact root behavior is unchanged).
 
 ## Tests
 
@@ -208,9 +215,9 @@ Channel-focused deterministic tests for grants, trade, market-signals, manufactu
 - publish/distribution workflow
 - approval/revision workflow
 - broad architecture rewrite
-- production-grade GCP deployment execution (this phase now includes staging prep docs/scripts)
+- production-grade GCP deployment execution (this phase now includes staging execution-ready scripts/docs)
 - live LLM-backed umbrella synthesis (current mode is deterministic/template-driven)
 
 ## Next likely step
 
-Execute the first hosted GCP staging bring-up using the documented Cloud Run/Jobs/Scheduler/Storage path, validate two scheduled cycles, and capture operational observations before production hardening.
+Perform the first real hosted GCP staging deployment run using the documented Cloud Run/Jobs/Scheduler/Storage path, validate two scheduled cycles, and capture operational observations before production hardening.
