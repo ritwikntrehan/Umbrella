@@ -15,6 +15,8 @@ import { runNormalization } from "./runners/normalization-runner.js";
 import { runSourceCheck } from "./runners/source-check-runner.js";
 import { assembleTradeBulletinArtifact } from "./runners/trade-bulletin-assembler.js";
 import { transformTradeBulletinToEditorial } from "./runners/trade-editorial-transformer.js";
+import { assembleUmbrellaSynthesisArtifact } from "./runners/umbrella-synthesis-assembler.js";
+import { readUmbrellaSynthesisInput } from "./runners/umbrella-synthesis-input-reader.js";
 
 async function runDeterministicPipeline(source = grantsSources[0]): Promise<void> {
   if (!source) throw new Error("No source configured for deterministic pipeline.");
@@ -274,6 +276,32 @@ async function runManufacturingEditorialAssembly(): Promise<void> {
   console.log(`  artifact=${artifactPath}`);
 }
 
+async function runUmbrellaSynthesisAssembly(): Promise<void> {
+  const store = await createLocalArtifactStore();
+  const input = await readUmbrellaSynthesisInput(store);
+  const artifact = assembleUmbrellaSynthesisArtifact({ input });
+  const artifactPath = await store.writeUmbrellaSynthesisArtifact(artifact);
+
+  console.log("[jobs] umbrella synthesis artifact assembled");
+  console.log(`  umbrellaArtifactId=${artifact.umbrella_artifact_id}`);
+  console.log(`  generatedAt=${artifact.generated_at}`);
+  console.log(`  includedChannels=${artifact.included_channels.join(", ") || "none"}`);
+  console.log(`  missingChannels=${artifact.missing_channels.join(", ") || "none"}`);
+  console.log(`  artifact=${artifactPath}`);
+  console.log(`  dataRoot=${store.rootDir}`);
+}
+
+async function inspectUmbrellaSynthesis(): Promise<void> {
+  const store = await createLocalArtifactStore();
+  const artifact = await store.readLatestUmbrellaSynthesisArtifact();
+  if (!artifact) {
+    throw new Error("No umbrella synthesis artifact found. Run umbrella-synthesis first.");
+  }
+
+  console.log("[jobs] latest umbrella synthesis artifact");
+  console.log(JSON.stringify(artifact, null, 2));
+}
+
 async function main(): Promise<void> {
   const command = process.argv[2] ?? "grants-pilot";
 
@@ -297,9 +325,11 @@ async function main(): Promise<void> {
   if (command === "market-signals-editorial") return runMarketSignalsEditorialAssembly();
   if (command === "manufacturing-editorial") return runManufacturingEditorialAssembly();
   if (command === "m-and-a-editorial") return runMAndAEditorialAssembly();
+  if (command === "umbrella-synthesis") return runUmbrellaSynthesisAssembly();
+  if (command === "inspect-umbrella-synthesis") return inspectUmbrellaSynthesis();
 
   throw new Error(
-    "Unknown jobs command. Use source-check/trade-source-check/market-signals-source-check/manufacturing-source-check/m-and-a-source-check, grants-pilot/trade-pilot/market-signals-pilot/manufacturing-pilot/m-and-a-pilot, grants-bulletin/trade-bulletin/market-signals-bulletin/manufacturing-bulletin/m-and-a-bulletin, grants-editorial/trade-editorial/market-signals-editorial/manufacturing-editorial/m-and-a-editorial."
+    "Unknown jobs command. Use source-check/trade-source-check/market-signals-source-check/manufacturing-source-check/m-and-a-source-check, grants-pilot/trade-pilot/market-signals-pilot/manufacturing-pilot/m-and-a-pilot, grants-bulletin/trade-bulletin/market-signals-bulletin/manufacturing-bulletin/m-and-a-bulletin, grants-editorial/trade-editorial/market-signals-editorial/manufacturing-editorial/m-and-a-editorial, umbrella-synthesis/inspect-umbrella-synthesis."
   );
 }
 

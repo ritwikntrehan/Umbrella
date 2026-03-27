@@ -12,6 +12,7 @@ import { readLatestManufacturingEditorialForWeb } from "../lib/manufacturing-art
 import { readLatestMarketSignalsEditorialForWeb } from "../lib/market-signals-artifact-reader.js";
 import { readLatestMAndAEditorialForWeb } from "../lib/m-and-a-artifact-reader.js";
 import { readLatestTradeEditorialForWeb } from "../lib/trade-artifact-reader.js";
+import { readLatestUmbrellaSynthesisForWeb } from "../lib/umbrella-synthesis-artifact-reader.js";
 
 function renderHighlight(params: {
   label: string;
@@ -41,6 +42,7 @@ function renderHighlight(params: {
 }
 
 export function homePage(): string {
+  const umbrella = readLatestUmbrellaSynthesisForWeb();
   const grants = readLatestGrantsEditorialForWeb();
   const trade = readLatestTradeEditorialForWeb();
   const manufacturing = readLatestManufacturingEditorialForWeb();
@@ -52,6 +54,23 @@ export function homePage(): string {
       "Umbrella Platform",
       "Visible deterministic slices now include grants, trade, market-signals, manufacturing, and M&A end-to-end rendering."
     ),
+    `<section class="card">
+      <h2>Umbrella Synthesis Layer</h2>
+      <p><strong>Summary:</strong> ${umbrella.summary}</p>
+      <p><strong>Included channels:</strong> ${umbrella.includedChannels.join(", ") || "none"}</p>
+      <p><strong>Missing channels:</strong> ${umbrella.missingChannels.join(", ") || "none"}</p>
+      ${
+        umbrella.fallbackReason
+          ? `<p>${umbrella.fallbackReason}</p>`
+          : `<p><strong>Generated at:</strong> ${umbrella.generatedAt ?? "unknown"}</p>`
+      }
+      <h3>Top updates across channels</h3>
+      <ul>${(umbrella.topUpdates.length > 0 ? umbrella.topUpdates : ["No synthesized updates available yet."]).map((item) => `<li>${item}</li>`).join("")}</ul>
+      <h3>Notable patterns</h3>
+      <ul>${(umbrella.notablePatterns.length > 0 ? umbrella.notablePatterns : ["No notable cross-channel patterns detected yet."]).map((item) => `<li>${item}</li>`).join("")}</ul>
+      <p><strong>Custom work CTA:</strong> ${umbrella.customWorkCta}</p>
+    </section>`,
+    renderCard("Contributing channels", "Channel pages remain available for detailed review:"),
     renderHighlight({
       label: grants.channelLabel,
       pageHref: "/channels/grants",
@@ -99,7 +118,7 @@ export function homePage(): string {
     }),
     renderCard(
       "Other Channels",
-      `Implemented web-integrated pilots: ${grantsChannelConfig.displayName}, ${tradeChannelConfig.displayName}, ${manufacturingChannelConfig.displayName}, ${marketSignalsChannelConfig.displayName}, and ${mAndAChannelConfig.displayName}.`
+      `Implemented web-integrated pilots contributing to umbrella synthesis: ${grantsChannelConfig.displayName}, ${tradeChannelConfig.displayName}, ${manufacturingChannelConfig.displayName}, ${marketSignalsChannelConfig.displayName}, and ${mAndAChannelConfig.displayName}.`
     )
   ].join("\n");
 

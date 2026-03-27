@@ -13,6 +13,7 @@ import type { ManufacturingBulletinReadyArtifact } from "../runners/manufacturin
 import type { ManufacturingEditorialArtifact } from "../runners/manufacturing-editorial-transformer.js";
 import type { MAndABulletinReadyArtifact } from "../runners/m-and-a-bulletin-assembler.js";
 import type { MAndAEditorialArtifact } from "../runners/m-and-a-editorial-transformer.js";
+import type { UmbrellaSynthesisArtifact } from "../runners/umbrella-synthesis-assembler.js";
 
 interface ArtifactEnvelope<T> {
   sourceId: string;
@@ -42,10 +43,12 @@ export interface ArtifactStore {
   writeChangeEvent: (source: Source, runId: string, event: DeterministicChangeEvent) => Promise<string>;
   writeBulletinReadyArtifact: (source: Source, artifact: BulletinReadyArtifact) => Promise<string>;
   writeEditorialArtifact: (source: Source, artifact: EditorialArtifact) => Promise<string>;
+  writeUmbrellaSynthesisArtifact: (artifact: UmbrellaSynthesisArtifact) => Promise<string>;
   readLatestChangeEvent: (source: Source) => Promise<DeterministicChangeEvent | null>;
   readLatestNormalizedRecords: (source: Source) => Promise<NormalizedRecord[] | null>;
   readLatestBulletinReadyArtifact: (source: Source) => Promise<BulletinReadyArtifact | null>;
   readLatestEditorialArtifact: (source: Source) => Promise<EditorialArtifact | null>;
+  readLatestUmbrellaSynthesisArtifact: () => Promise<UmbrellaSynthesisArtifact | null>;
 }
 
 const DIRECTORY_NAMES = {
@@ -126,6 +129,14 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
       const latestPath = join(sourcePublishedDir, "latest.editorial.json");
       return writeJson(latestPath, { sourceId: source.id, createdAt: artifact.generated_at, payload: artifact });
     },
+    async writeUmbrellaSynthesisArtifact(artifact) {
+      const umbrellaSourceId = "umbrella-synthesis";
+      const umbrellaDir = join(rootDir, DIRECTORY_NAMES.published, umbrellaSourceId);
+      const runPath = join(umbrellaDir, `${artifact.umbrella_artifact_id}.umbrella-synthesis.json`);
+      await writeJson(runPath, { sourceId: umbrellaSourceId, createdAt: artifact.generated_at, payload: artifact });
+      const latestPath = join(umbrellaDir, "latest.umbrella-synthesis.json");
+      return writeJson(latestPath, { sourceId: umbrellaSourceId, createdAt: artifact.generated_at, payload: artifact });
+    },
     async readLatestChangeEvent(source) {
       try {
         const path = join(rootDir, DIRECTORY_NAMES.features, source.id, "latest.change-event.json");
@@ -154,6 +165,16 @@ export async function createLocalArtifactStore(): Promise<ArtifactStore> {
         const path = join(rootDir, DIRECTORY_NAMES.published, source.id, "latest.editorial.json");
         const content = await readFile(path, "utf8");
         const parsed = JSON.parse(content) as ArtifactEnvelope<EditorialArtifact>;
+        return parsed.payload;
+      } catch {
+        return null;
+      }
+    },
+    async readLatestUmbrellaSynthesisArtifact() {
+      try {
+        const path = join(rootDir, DIRECTORY_NAMES.published, "umbrella-synthesis", "latest.umbrella-synthesis.json");
+        const content = await readFile(path, "utf8");
+        const parsed = JSON.parse(content) as ArtifactEnvelope<UmbrellaSynthesisArtifact>;
         return parsed.payload;
       } catch {
         return null;

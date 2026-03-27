@@ -30,7 +30,9 @@
     "pilot:m-and-a": "tsx src/index.ts m-and-a-pilot",
     "pilot:m-and-a:source-check": "tsx src/index.ts m-and-a-source-check",
     "pilot:m-and-a:bulletin": "tsx src/index.ts m-and-a-bulletin",
-    "pilot:m-and-a:editorial": "tsx src/index.ts m-and-a-editorial"
+    "pilot:m-and-a:editorial": "tsx src/index.ts m-and-a-editorial",
+    "umbrella-synthesis": "tsx src/index.ts umbrella-synthesis",
+    "inspect-umbrella-synthesis": "tsx src/index.ts inspect-umbrella-synthesis"
   },
   "dependencies": {
     "@umbrella/channel-config": "0.1.0",

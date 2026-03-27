@@ -1,4 +1,4 @@
-# Umbrella Platform (Deterministic Grants + Trade + Market-Signals + Manufacturing + M&A Pilot Slices)
+# Umbrella Platform (Five Channel Slices + First Umbrella Synthesis Layer)
 
 This repo keeps the existing architecture and now includes five implemented channel slices:
 
@@ -14,6 +14,12 @@ Each channel follows the same layered path:
 2. bulletin-ready artifact (deterministic, pre-LLM)
 3. editorial artifact (instruction-driven, deterministic-template mode)
 4. web rendering of latest editorial artifact
+
+The new umbrella layer adds:
+
+5. umbrella synthesis input reader (latest channel editorials)
+6. umbrella synthesis artifact (deterministic, template-driven)
+7. homepage rendering from the latest umbrella synthesis artifact
 
 ## What is shared vs channel-specific
 
@@ -49,6 +55,10 @@ Per source:
 - `features/<source_id>/latest.change-event.json`
 - `published/<source_id>/latest.bulletin-ready.json`
 - `published/<source_id>/latest.editorial.json`
+
+Umbrella-level:
+
+- `published/umbrella-synthesis/latest.umbrella-synthesis.json`
 
 ## Workspace hardening baseline (local development)
 
@@ -130,6 +140,21 @@ npm run pilot:m-and-a:bulletin
 npm run pilot:m-and-a:editorial
 ```
 
+## Run umbrella synthesis flow
+
+```bash
+npm run umbrella-synthesis
+npm run inspect-umbrella-synthesis
+```
+
+This generates a cross-channel artifact that consumes the latest editorial artifacts from:
+
+- grants
+- trade
+- market-signals
+- manufacturing
+- m-and-a
+
 ## Run web
 
 ```bash
@@ -138,7 +163,7 @@ npm run dev -w @umbrella/web
 
 Then open:
 
-- `http://localhost:3000/` (grants + trade + market-signals + manufacturing + M&A highlight modules)
+- `http://localhost:3000/` (umbrella synthesis summary as primary layer + channel modules as secondary)
 - `http://localhost:3000/channels/grants`
 - `http://localhost:3000/channels/trade`
 - `http://localhost:3000/channels/manufacturing`
@@ -160,13 +185,13 @@ Channel-focused deterministic tests for grants, trade, market-signals, manufactu
 
 ## Explicitly deferred
 
-- umbrella-wide synthesis/orchestration
 - search/archive views
 - publish/distribution workflow
 - approval/revision workflow
 - broad architecture rewrite
 - GCP deployment
+- live LLM-backed umbrella synthesis (current mode is deterministic/template-driven)
 
 ## Next likely step
 
-Add a narrow channel-local “latest + recent history” artifact listing/read path for each implemented channel page (including M&A), while keeping channels independent and avoiding umbrella synthesis.
+Add an optional LLM-backed umbrella synthesis mode behind the existing umbrella instruction spec while preserving deterministic fallback and stable provenance behavior.

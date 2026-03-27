@@ -34,3 +34,8 @@ export function readLatestBulletinReadyArtifact(sourceId: string): any | null {
   const path = join(getDataRootDir(), "published", sourceId, "latest.bulletin-ready.json");
   return parseArtifactEnvelope(path);
 }
+
+export function readLatestUmbrellaSynthesisArtifact(): any | null {
+  const path = join(getDataRootDir(), "published", "umbrella-synthesis", "latest.umbrella-synthesis.json");
+  return parseArtifactEnvelope(path);
+}
