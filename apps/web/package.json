@@ -14,5 +14,8 @@
   "dependencies": {
     "@umbrella/channel-config": "0.1.0",
     "@umbrella/ui": "0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
   }
 }
