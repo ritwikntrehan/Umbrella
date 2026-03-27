@@ -26,7 +26,11 @@
     "pilot:market-signals": "npm run pilot:market-signals -w @umbrella/jobs",
     "pilot:market-signals:source-check": "npm run pilot:market-signals:source-check -w @umbrella/jobs",
     "pilot:market-signals:bulletin": "npm run pilot:market-signals:bulletin -w @umbrella/jobs",
-    "pilot:market-signals:editorial": "npm run pilot:market-signals:editorial -w @umbrella/jobs"
+    "pilot:market-signals:editorial": "npm run pilot:market-signals:editorial -w @umbrella/jobs",
+    "pilot:manufacturing": "npm run pilot:manufacturing -w @umbrella/jobs",
+    "pilot:manufacturing:source-check": "npm run pilot:manufacturing:source-check -w @umbrella/jobs",
+    "pilot:manufacturing:bulletin": "npm run pilot:manufacturing:bulletin -w @umbrella/jobs",
+    "pilot:manufacturing:editorial": "npm run pilot:manufacturing:editorial -w @umbrella/jobs"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

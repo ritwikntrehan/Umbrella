@@ -1,10 +1,11 @@
-# Umbrella Platform (Deterministic Grants + Trade + Market-Signals Pilot Slices)
+# Umbrella Platform (Deterministic Grants + Trade + Market-Signals + Manufacturing Pilot Slices)
 
-This repo keeps the existing architecture and now includes three implemented channel slices:
+This repo keeps the existing architecture and now includes four implemented channel slices:
 
 - grants (first vertical slice)
 - trade (second vertical slice)
 - market-signals (third vertical slice)
+- manufacturing (fourth vertical slice)
 
 Each channel follows the same layered path:
 
@@ -73,6 +74,14 @@ npm run pilot:market-signals:bulletin
 npm run pilot:market-signals:editorial
 ```
 
+## Run manufacturing flow
+
+```bash
+npm run pilot:manufacturing
+npm run pilot:manufacturing:bulletin
+npm run pilot:manufacturing:editorial
+```
+
 ## Run web
 
 ```bash
@@ -81,9 +90,10 @@ npm run dev -w @umbrella/web
 
 Then open:
 
-- `http://localhost:3000/` (grants + trade + market-signals highlight modules)
+- `http://localhost:3000/` (grants + trade + manufacturing + market-signals highlight modules)
 - `http://localhost:3000/channels/grants`
 - `http://localhost:3000/channels/trade`
+- `http://localhost:3000/channels/manufacturing`
 - `http://localhost:3000/channels/market-signals`
 
 If artifacts are missing, pages show fallback guidance with generation commands.
@@ -95,7 +105,7 @@ npm run test:grants-pilot
 npm run test:web
 ```
 
-Channel-focused deterministic tests for grants, trade, and market-signals are included in `@umbrella/jobs`.
+Channel-focused deterministic tests for grants, trade, market-signals, and manufacturing are included in `@umbrella/jobs`.
 
 ## Explicitly deferred
 
@@ -108,4 +118,4 @@ Channel-focused deterministic tests for grants, trade, and market-signals are in
 
 ## Next likely step
 
-Add a narrow channel-local “latest + recent history” artifact listing/read path for each implemented channel page, still keeping each channel independent and avoiding umbrella synthesis.
+Add a narrow channel-local “latest + recent history” artifact listing/read path for each implemented channel page (including manufacturing), while keeping channels independent and avoiding umbrella synthesis.

@@ -1,14 +1,15 @@
-# Implementation Notes - Grants + Trade + Market-Signals Deterministic Vertical Slices
+# Implementation Notes - Grants + Trade + Market-Signals + Manufacturing Deterministic Vertical Slices
 
 ## Current state
 
-The platform now proves three channels through the same layered pattern:
+The platform now proves four channels through the same layered pattern:
 
 - grants
 - trade
 - market-signals
+- manufacturing
 
-All three channels run:
+All four channels run:
 
 1. source check
 2. ingestion
@@ -18,12 +19,12 @@ All three channels run:
 6. editorial transformation (instruction-driven, deterministic-template)
 7. web rendering from latest editorial artifact
 
-## Market-signals third-channel additions
+## Manufacturing fourth-channel additions
 
 ### Source + adapter
 
-- Added `marketSignalsSources` pilot source in channel config.
-- Added `MockMarketSignalsAdapter` with deterministic fixtures supporting:
+- Added `manufacturingSources` pilot source in channel config (`manufacturing-pilot-network`).
+- Added `MockManufacturingAdapter` with deterministic fixtures supporting:
   - stable/base run
   - changed run (`?variant=changed`)
   - metadata/source-check support
@@ -31,54 +32,72 @@ All three channels run:
 
 ### Pipeline wiring
 
-- Added jobs commands for market-signals pipeline and downstream layers:
-  - `market-signals-source-check`
-  - `market-signals-pilot`
-  - `market-signals-bulletin`
-  - `market-signals-editorial`
+- Added jobs commands for manufacturing pipeline and downstream layers:
+  - `manufacturing-source-check`
+  - `manufacturing-pilot`
+  - `manufacturing-bulletin`
+  - `manufacturing-editorial`
 
 ### Bulletin-ready + editorial
 
-- Added `MarketSignalsBulletinReadyArtifact` assembly using deterministic templates.
-- Added `MARKET_SIGNALS_EDITORIAL_INSTRUCTIONS_V1`.
-- Added market-signals editorial transformer preserving provenance and deterministic references.
+- Added `ManufacturingBulletinReadyArtifact` assembly using deterministic templates tailored to supplier capability and operational intelligence.
+- Added `MANUFACTURING_EDITORIAL_INSTRUCTIONS_V1` emphasizing concise industrial tone, operational relevance, commercial usefulness, and no-change vs changed run handling.
+- Added manufacturing editorial transformer preserving provenance and deterministic references while keeping LLM mode deferred by default.
 
 ### Web
 
-- Added homepage market-signals highlight module.
-- Added `/channels/market-signals` page reading latest market-signals editorial artifact.
-- Added fallback states when no market-signals artifact exists.
+- Added homepage manufacturing highlight module.
+- Added `/channels/manufacturing` page reading latest manufacturing editorial artifact.
+- Added fallback states when no manufacturing artifact exists.
 
 ## Minimal shared cleanup
 
-- Kept existing architecture and added only narrow helpers justified by a third real channel.
-- Added `apps/web/src/lib/artifact-reader-shared.ts` for shared artifact envelope parsing and latest artifact path reading.
-- Local artifact store now handles grants + trade + market-signals artifact unions.
+- Kept architecture stable and limited shared updates to only what was justified by the fourth real channel.
+- Reused existing shared helpers:
+  - `apps/web/src/lib/artifact-reader-shared.ts`
+  - `apps/web/src/lib/grants-render-helpers.ts`
+- Expanded existing local artifact store union typing to include manufacturing bulletin/editorial artifacts.
 
-## How to generate and inspect market-signals artifacts
+## What is shared vs channel-specific now
+
+Shared:
+
+- deterministic pipeline runners (source-check, ingestion, normalization, change detection)
+- artifact storage conventions (`raw/`, `clean/`, `features/`, `published/`)
+- deterministic change-event contract (`DeterministicChangeEvent`)
+- web artifact envelope parsing and common render helpers
+
+Channel-specific:
+
+- source config and adapter fixture details
+- bulletin-ready assembler text and watchlist framing
+- editorial instruction spec and editorial transformer logic
+- channel-specific web reader and channel page
+
+## How to generate and inspect manufacturing artifacts
 
 ```bash
-npm run pilot:market-signals
-npm run pilot:market-signals:bulletin
-npm run pilot:market-signals:editorial
+npm run pilot:manufacturing
+npm run pilot:manufacturing:bulletin
+npm run pilot:manufacturing:editorial
 ```
 
 Artifacts are written under local conventions:
 
-- `data/grants-pilot/raw/market-signals-pilot-feed/*`
-- `data/grants-pilot/clean/market-signals-pilot-feed/*`
-- `data/grants-pilot/features/market-signals-pilot-feed/latest.change-event.json`
-- `data/grants-pilot/published/market-signals-pilot-feed/latest.bulletin-ready.json`
-- `data/grants-pilot/published/market-signals-pilot-feed/latest.editorial.json`
+- `data/grants-pilot/raw/manufacturing-pilot-network/*`
+- `data/grants-pilot/clean/manufacturing-pilot-network/*`
+- `data/grants-pilot/features/manufacturing-pilot-network/latest.change-event.json`
+- `data/grants-pilot/published/manufacturing-pilot-network/latest.bulletin-ready.json`
+- `data/grants-pilot/published/manufacturing-pilot-network/latest.editorial.json`
 
 ## Tests added
 
-- market-signals deterministic adapter behavior
-- market-signals normalization shape
-- market-signals change detection stable vs changed
-- market-signals bulletin assembly
-- market-signals editorial generation
-- market-signals web fallback behavior
+- manufacturing deterministic adapter behavior
+- manufacturing normalization shape
+- manufacturing change detection stable vs changed
+- manufacturing bulletin assembly
+- manufacturing editorial generation
+- manufacturing web fallback behavior
 
 ## Intentionally still deferred
 
@@ -91,4 +110,4 @@ Artifacts are written under local conventions:
 
 ## Next likely step
 
-Implement a narrow channel-local “latest + recent history” artifact listing/read layer for grants, trade, and market-signals pages while keeping channels independent and still avoiding umbrella synthesis.
+Add a narrow channel-local “latest + recent history” artifact listing/read path for each of the four implemented channels while keeping channels independent and still avoiding umbrella synthesis.

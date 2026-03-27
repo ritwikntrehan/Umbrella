@@ -1,10 +1,16 @@
 import type { SourceAdapter } from "@umbrella/source-adapters";
-import { MockGrantsAdapter, MockMarketSignalsAdapter, MockTradeAdapter } from "@umbrella/source-adapters";
+import {
+  MockGrantsAdapter,
+  MockManufacturingAdapter,
+  MockMarketSignalsAdapter,
+  MockTradeAdapter
+} from "@umbrella/source-adapters";
 
 const registry: Record<string, SourceAdapter> = {
   "mock-grants-feed": new MockGrantsAdapter(),
   "mock-trade-feed": new MockTradeAdapter(),
-  "mock-market-signals-feed": new MockMarketSignalsAdapter()
+  "mock-market-signals-feed": new MockMarketSignalsAdapter(),
+  "mock-manufacturing-feed": new MockManufacturingAdapter()
 };
 
 export function getAdapter(adapterKey: string): SourceAdapter {
