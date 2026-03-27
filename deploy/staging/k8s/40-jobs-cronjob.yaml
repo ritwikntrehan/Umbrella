@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: umbrella-jobs
+  namespace: umbrella-staging
+spec:
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: jobs
+              image: umbrella/jobs:staging
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "-lc", "./scripts/staging/run-staging-cycle.sh"]
+              envFrom:
+                - configMapRef:
+                    name: umbrella-staging-config
+              volumeMounts:
+                - name: artifacts
+                  mountPath: /var/lib/umbrella/artifacts
+          volumes:
+            - name: artifacts
+              persistentVolumeClaim:
+                claimName: umbrella-artifacts-pvc

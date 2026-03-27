@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: umbrella-staging-smoke
+  namespace: umbrella-staging
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: smoke
+          image: umbrella/jobs:staging
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-lc", "./scripts/staging/smoke-check.sh"]
+          envFrom:
+            - configMapRef:
+                name: umbrella-staging-config
+          volumeMounts:
+            - name: artifacts
+              mountPath: /var/lib/umbrella/artifacts
+      volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: umbrella-artifacts-pvc

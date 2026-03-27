@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: umbrella-staging-config
+  namespace: umbrella-staging
+data:
+  NODE_ENV: production
+  UMBRELLA_DATA_DIR: /var/lib/umbrella/artifacts
+  WEB_PORT: "3000"
+  RUNNER_SCHEDULE: "*/30 * * * *"
