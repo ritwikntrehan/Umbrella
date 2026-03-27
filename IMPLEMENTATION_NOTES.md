@@ -20,6 +20,38 @@ All five channels run:
 6. editorial transformation (instruction-driven, deterministic-template)
 7. web rendering from latest editorial artifact
 
+## Monorepo hardening updates (current step)
+
+This step intentionally avoided product-scope expansion and focused only on run/build/test stability in the existing monorepo.
+
+### What was tightened
+
+- Workspace package entrypoints for local development:
+  - `@umbrella/*` package entrypoints now resolve to `src/index.ts` for source-first local imports.
+  - This removes fragile local dependence on manually prebuilt `dist/index.js` just to run tests/jobs/web with `tsx`.
+- TypeScript workspace coherence:
+  - Removed per-package/app `rootDir` constraints that were conflicting with workspace source imports.
+  - Added shared ambient node typings file under `types/globals.d.ts`.
+  - Updated each app/package `tsconfig.json` to include that shared types path.
+- Root command ergonomics:
+  - Added explicit root scripts for `dev:jobs`, `dev:web`, `test`, `test:jobs`.
+  - Made `build` deterministic via `build:packages` then `build:apps`.
+
+### Intended local workflow now
+
+1. `npm install`
+2. `npm run typecheck`
+3. `npm run test`
+4. `npm run build`
+5. Run channel commands (`pilot:*`) and web (`dev:web`) as needed.
+
+### Why this is narrow
+
+- No new channels.
+- No umbrella synthesis.
+- No deployment/publishing/auth/search/archive additions.
+- No architecture rewrite; only workspace/package/ts/script hardening.
+
 ## M&A fifth-channel additions
 
 ### Source + adapter

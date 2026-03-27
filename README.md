@@ -50,10 +50,49 @@ Per source:
 - `published/<source_id>/latest.bulletin-ready.json`
 - `published/<source_id>/latest.editorial.json`
 
-## Run grants flow
+## Workspace hardening baseline (local development)
+
+This repo is now configured for **source-first workspace development**:
+
+- Local `@umbrella/*` packages resolve directly to `src/index.ts` through each package `main/types/exports`.
+- `tsx` commands in jobs/web no longer depend on prebuilt `dist/` artifacts for local execution.
+- Root scripts enforce a stable build order (`packages` first, then `apps`) when `dist/` output is needed.
+- TypeScript includes shared local ambient node typings in `types/globals.d.ts` so workspace typecheck is consistent in this environment.
+
+## Install
 
 ```bash
 npm install
+```
+
+## Common workspace commands
+
+```bash
+# typecheck everything
+npm run typecheck
+
+# build all packages then apps
+npm run build
+
+# run all tests
+npm run test
+
+# run jobs tests only
+npm run test:jobs
+
+# run web tests only
+npm run test:web
+
+# start jobs entrypoint (default: grants-pilot)
+npm run dev:jobs
+
+# start web server
+npm run dev:web
+```
+
+## Run grants flow
+
+```bash
 npm run pilot:grants
 npm run pilot:grants:bulletin
 npm run pilot:grants:editorial
@@ -111,19 +150,21 @@ If artifacts are missing, pages show fallback guidance with generation commands.
 ## Tests
 
 ```bash
-npm run test:grants-pilot
+npm run test
+npm run test:jobs
 npm run test:web
+npm run typecheck
 ```
 
 Channel-focused deterministic tests for grants, trade, market-signals, manufacturing, and M&A are included in `@umbrella/jobs`.
 
 ## Explicitly deferred
 
-- umbrella cross-channel synthesis
+- umbrella-wide synthesis/orchestration
 - search/archive views
 - publish/distribution workflow
 - approval/revision workflow
-- broad all-channel refactor
+- broad architecture rewrite
 - GCP deployment
 
 ## Next likely step
