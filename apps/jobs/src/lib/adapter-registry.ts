@@ -1,5 +1,6 @@
 import type { SourceAdapter } from "@umbrella/source-adapters";
 import {
+  GrantsGovAdapter,
   MockGrantsAdapter,
   MockManufacturingAdapter,
   MockMarketSignalsAdapter,
@@ -8,6 +9,7 @@ import {
 } from "@umbrella/source-adapters";
 
 const registry: Record<string, SourceAdapter> = {
+  "grants-gov-feed": new GrantsGovAdapter(),
   "mock-grants-feed": new MockGrantsAdapter(),
   "mock-trade-feed": new MockTradeAdapter(),
   "mock-market-signals-feed": new MockMarketSignalsAdapter(),
