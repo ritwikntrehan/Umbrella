@@ -2,6 +2,7 @@ import {
   grantsChannelConfig,
   manufacturingChannelConfig,
   marketSignalsChannelConfig,
+  mAndAChannelConfig,
   tradeChannelConfig
 } from "@umbrella/channel-config";
 import { renderCard, renderLayout } from "@umbrella/ui";
@@ -9,6 +10,7 @@ import { readLatestGrantsEditorialForWeb } from "../lib/grants-artifact-reader.j
 import { formatBulletinPeriod } from "../lib/grants-render-helpers.js";
 import { readLatestManufacturingEditorialForWeb } from "../lib/manufacturing-artifact-reader.js";
 import { readLatestMarketSignalsEditorialForWeb } from "../lib/market-signals-artifact-reader.js";
+import { readLatestMAndAEditorialForWeb } from "../lib/m-and-a-artifact-reader.js";
 import { readLatestTradeEditorialForWeb } from "../lib/trade-artifact-reader.js";
 
 function renderHighlight(params: {
@@ -43,11 +45,12 @@ export function homePage(): string {
   const trade = readLatestTradeEditorialForWeb();
   const manufacturing = readLatestManufacturingEditorialForWeb();
   const marketSignals = readLatestMarketSignalsEditorialForWeb();
+  const mAndA = readLatestMAndAEditorialForWeb();
 
   const body = [
     renderCard(
       "Umbrella Platform",
-      "Visible deterministic slices now include grants, trade, and market-signals end-to-end rendering."
+      "Visible deterministic slices now include grants, trade, market-signals, manufacturing, and M&A end-to-end rendering."
     ),
     renderHighlight({
       label: grants.channelLabel,
@@ -85,9 +88,18 @@ export function homePage(): string {
       summary: marketSignals.editorialSummary,
       cta: marketSignals.refinedCustomWorkCta?.body
     }),
+    renderHighlight({
+      label: mAndA.channelLabel,
+      pageHref: "/channels/m-and-a",
+      fallbackReason: mAndA.fallbackReason,
+      period: formatBulletinPeriod(mAndA),
+      topLine: mAndA.refinedTopLine?.body,
+      summary: mAndA.editorialSummary,
+      cta: mAndA.refinedCustomWorkCta?.body
+    }),
     renderCard(
       "Other Channels",
-      `Still placeholder-only while ${grantsChannelConfig.displayName}, ${tradeChannelConfig.displayName}, ${manufacturingChannelConfig.displayName}, and ${marketSignalsChannelConfig.displayName} are active web-integrated pilots.`
+      `Implemented web-integrated pilots: ${grantsChannelConfig.displayName}, ${tradeChannelConfig.displayName}, ${manufacturingChannelConfig.displayName}, ${marketSignalsChannelConfig.displayName}, and ${mAndAChannelConfig.displayName}.`
     )
   ].join("\n");
 

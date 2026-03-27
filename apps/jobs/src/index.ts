@@ -1,4 +1,4 @@
-import { grantsSources, manufacturingSources, marketSignalsSources, tradeSources } from "@umbrella/channel-config";
+import { grantsSources, mAndASources, manufacturingSources, marketSignalsSources, tradeSources } from "@umbrella/channel-config";
 import { createLocalArtifactStore } from "./lib/local-artifact-store.js";
 import { validateNormalizedRecords, validateRawAssets, validateSourceCheck } from "./lib/validators.js";
 import { runChangeDetection } from "./runners/change-detection-runner.js";
@@ -9,6 +9,8 @@ import { assembleMarketSignalsBulletinArtifact } from "./runners/market-signals-
 import { transformMarketSignalsBulletinToEditorial } from "./runners/market-signals-editorial-transformer.js";
 import { assembleManufacturingBulletinArtifact } from "./runners/manufacturing-bulletin-assembler.js";
 import { transformManufacturingBulletinToEditorial } from "./runners/manufacturing-editorial-transformer.js";
+import { assembleMAndABulletinArtifact } from "./runners/m-and-a-bulletin-assembler.js";
+import { transformMAndABulletinToEditorial } from "./runners/m-and-a-editorial-transformer.js";
 import { runNormalization } from "./runners/normalization-runner.js";
 import { runSourceCheck } from "./runners/source-check-runner.js";
 import { assembleTradeBulletinArtifact } from "./runners/trade-bulletin-assembler.js";
@@ -213,6 +215,48 @@ async function runManufacturingBulletinAssembly(): Promise<void> {
   console.log(`  dataRoot=${store.rootDir}`);
 }
 
+
+async function runMAndABulletinAssembly(): Promise<void> {
+  const source = mAndASources[0];
+  if (!source) throw new Error("No M&A source configured for pilot scaffold.");
+
+  const store = await createLocalArtifactStore();
+  const changeEvent = await store.readLatestChangeEvent(source);
+  if (!changeEvent) throw new Error("No change event artifact found. Run M&A pilot first.");
+
+  const normalizedRecords = await store.readLatestNormalizedRecords(source);
+  if (!normalizedRecords) throw new Error("No normalized records artifact found. Run M&A pilot first.");
+
+  const bulletin = assembleMAndABulletinArtifact({ source, changeEvent, normalizedRecords });
+  const artifactPath = await store.writeBulletinReadyArtifact(source, bulletin);
+
+  console.log("[jobs] M&A bulletin-ready artifact assembled");
+  console.log(`  source=${source.id}`);
+  console.log(`  bulletinId=${bulletin.bulletin_id}`);
+  console.log(`  period=${bulletin.bulletin_period.label}`);
+  console.log(`  generatedAt=${bulletin.generated_at}`);
+  console.log(`  status=${changeEvent.status}`);
+  console.log(`  artifact=${artifactPath}`);
+  console.log(`  dataRoot=${store.rootDir}`);
+}
+
+async function runMAndAEditorialAssembly(): Promise<void> {
+  const source = mAndASources[0];
+  if (!source) throw new Error("No M&A source configured for pilot scaffold.");
+
+  const store = await createLocalArtifactStore();
+  const bulletin = await store.readLatestBulletinReadyArtifact(source);
+  if (!bulletin || bulletin.channel_id !== "m-and-a") {
+    throw new Error("No M&A bulletin-ready artifact found. Run M&A bulletin assembly first.");
+  }
+
+  const editorial = transformMAndABulletinToEditorial({ bulletin });
+  const artifactPath = await store.writeEditorialArtifact(source, editorial);
+
+  console.log("[jobs] M&A editorial artifact assembled");
+  console.log(`  artifact=${artifactPath}`);
+}
+
 async function runManufacturingEditorialAssembly(): Promise<void> {
   const source = manufacturingSources[0];
   if (!source) throw new Error("No manufacturing source configured for pilot scaffold.");
@@ -237,21 +281,25 @@ async function main(): Promise<void> {
   if (command === "trade-source-check") return runSourceCheckOnly(tradeSources[0]);
   if (command === "market-signals-source-check") return runSourceCheckOnly(marketSignalsSources[0]);
   if (command === "manufacturing-source-check") return runSourceCheckOnly(manufacturingSources[0]);
+  if (command === "m-and-a-source-check") return runSourceCheckOnly(mAndASources[0]);
   if (command === "grants-pilot") return runDeterministicPipeline(grantsSources[0]);
   if (command === "trade-pilot") return runDeterministicPipeline(tradeSources[0]);
   if (command === "market-signals-pilot") return runDeterministicPipeline(marketSignalsSources[0]);
   if (command === "manufacturing-pilot") return runDeterministicPipeline(manufacturingSources[0]);
+  if (command === "m-and-a-pilot") return runDeterministicPipeline(mAndASources[0]);
   if (command === "grants-bulletin") return runGrantsBulletinAssembly();
   if (command === "trade-bulletin") return runTradeBulletinAssembly();
   if (command === "market-signals-bulletin") return runMarketSignalsBulletinAssembly();
   if (command === "manufacturing-bulletin") return runManufacturingBulletinAssembly();
+  if (command === "m-and-a-bulletin") return runMAndABulletinAssembly();
   if (command === "grants-editorial") return runGrantsEditorialAssembly();
   if (command === "trade-editorial") return runTradeEditorialAssembly();
   if (command === "market-signals-editorial") return runMarketSignalsEditorialAssembly();
   if (command === "manufacturing-editorial") return runManufacturingEditorialAssembly();
+  if (command === "m-and-a-editorial") return runMAndAEditorialAssembly();
 
   throw new Error(
-    "Unknown jobs command. Use source-check/trade-source-check/market-signals-source-check/manufacturing-source-check, grants-pilot/trade-pilot/market-signals-pilot/manufacturing-pilot, grants-bulletin/trade-bulletin/market-signals-bulletin/manufacturing-bulletin, grants-editorial/trade-editorial/market-signals-editorial/manufacturing-editorial."
+    "Unknown jobs command. Use source-check/trade-source-check/market-signals-source-check/manufacturing-source-check/m-and-a-source-check, grants-pilot/trade-pilot/market-signals-pilot/manufacturing-pilot/m-and-a-pilot, grants-bulletin/trade-bulletin/market-signals-bulletin/manufacturing-bulletin/m-and-a-bulletin, grants-editorial/trade-editorial/market-signals-editorial/manufacturing-editorial/m-and-a-editorial."
   );
 }
 

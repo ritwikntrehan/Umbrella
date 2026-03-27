@@ -30,7 +30,11 @@
     "pilot:manufacturing": "npm run pilot:manufacturing -w @umbrella/jobs",
     "pilot:manufacturing:source-check": "npm run pilot:manufacturing:source-check -w @umbrella/jobs",
     "pilot:manufacturing:bulletin": "npm run pilot:manufacturing:bulletin -w @umbrella/jobs",
-    "pilot:manufacturing:editorial": "npm run pilot:manufacturing:editorial -w @umbrella/jobs"
+    "pilot:manufacturing:editorial": "npm run pilot:manufacturing:editorial -w @umbrella/jobs",
+    "pilot:m-and-a": "npm run pilot:m-and-a -w @umbrella/jobs",
+    "pilot:m-and-a:source-check": "npm run pilot:m-and-a:source-check -w @umbrella/jobs",
+    "pilot:m-and-a:bulletin": "npm run pilot:m-and-a:bulletin -w @umbrella/jobs",
+    "pilot:m-and-a:editorial": "npm run pilot:m-and-a:editorial -w @umbrella/jobs"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

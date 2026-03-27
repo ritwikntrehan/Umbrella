@@ -26,7 +26,11 @@
     "pilot:manufacturing": "tsx src/index.ts manufacturing-pilot",
     "pilot:manufacturing:source-check": "tsx src/index.ts manufacturing-source-check",
     "pilot:manufacturing:bulletin": "tsx src/index.ts manufacturing-bulletin",
-    "pilot:manufacturing:editorial": "tsx src/index.ts manufacturing-editorial"
+    "pilot:manufacturing:editorial": "tsx src/index.ts manufacturing-editorial",
+    "pilot:m-and-a": "tsx src/index.ts m-and-a-pilot",
+    "pilot:m-and-a:source-check": "tsx src/index.ts m-and-a-source-check",
+    "pilot:m-and-a:bulletin": "tsx src/index.ts m-and-a-bulletin",
+    "pilot:m-and-a:editorial": "tsx src/index.ts m-and-a-editorial"
   },
   "dependencies": {
     "@umbrella/channel-config": "0.1.0",
