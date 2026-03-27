@@ -93,6 +93,7 @@ Hard rule: published assertions must retain valid citations to deterministic obj
 - Cadence: weekly bulletin baseline per channel; higher check frequency where configured in `ChannelConfig`.
 - Deployment target: GCP batch-oriented services.
 - Priority order: traceability > reliability > throughput > UI polish.
+- Detailed orchestration, retry/idempotency, retention, SLO, and observability requirements are defined in `OPERATIONS_STANDARDS.md`.
 
 ## 8) Implementation Directives
 - Use a monorepo with strict package boundaries.

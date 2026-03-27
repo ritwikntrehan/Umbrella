@@ -126,5 +126,7 @@ A release to production requires:
 4. No unresolved severity-1 data integrity defects.
 
 ## 6) Open Questions
-1. What explicit SLOs (check latency, ingestion success rate, publish deadline adherence) should be codified before Phase 4?
-2. Should Phase 5 and Phase 6 remain sequential, or run partially in parallel if staffing increases?
+1. Should Phase 5 and Phase 6 remain sequential, or run partially in parallel if staffing increases?
+
+Resolved standards:
+- Operational SLOs, retention policy, and runner observability requirements are codified in `OPERATIONS_STANDARDS.md`.

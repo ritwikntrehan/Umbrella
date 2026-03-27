@@ -6,6 +6,7 @@ This repository keeps the authoritative architecture/specification files at the 
 - `CHANNELS.md`: channel definitions and scope.
 - `DATA_CONTRACTS.md`: deterministic object contracts and intended data model boundaries.
 - `BUILD_SEQUENCE.md`: phased implementation order.
+- `OPERATIONS_STANDARDS.md`: orchestration, retry/idempotency, retention, SLOs, and required observability fields.
 
 ## How to use these docs during implementation
 
