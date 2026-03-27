@@ -1,0 +1,9 @@
+{
+  "name": "@umbrella/firebase",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "firebase:deploy": "firebase deploy --config firebase.json",
+    "firebase:emulators": "firebase emulators:start --config firebase.json"
+  }
+}
