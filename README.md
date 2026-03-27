@@ -172,6 +172,25 @@ Then open:
 
 If artifacts are missing, pages show fallback guidance with generation commands.
 
+
+## GCP staging deployment prep (Cloud Run-first)
+
+This repository now includes a practical **staging deployment preparation** path for GCP using:
+
+- Cloud Run service for `apps/web`
+- Cloud Run Job for `apps/jobs`
+- Cloud Scheduler trigger for scheduled job runs
+- Cloud Storage bucket for staged artifact persistence
+
+Start with:
+
+- `deploy/staging/GCP_STAGING_PLAN.md`
+- `deploy/staging/GCP_STAGING_RUNBOOK.md`
+- `deploy/staging/gcp/env.staging.example`
+- `scripts/staging/gcp/*.sh`
+
+This phase is prep-only and keeps local development intact (default local artifact root behavior is unchanged).
+
 ## Tests
 
 ```bash
@@ -189,9 +208,9 @@ Channel-focused deterministic tests for grants, trade, market-signals, manufactu
 - publish/distribution workflow
 - approval/revision workflow
 - broad architecture rewrite
-- GCP deployment
+- production-grade GCP deployment execution (this phase now includes staging prep docs/scripts)
 - live LLM-backed umbrella synthesis (current mode is deterministic/template-driven)
 
 ## Next likely step
 
-Add an optional LLM-backed umbrella synthesis mode behind the existing umbrella instruction spec while preserving deterministic fallback and stable provenance behavior.
+Execute the first hosted GCP staging bring-up using the documented Cloud Run/Jobs/Scheduler/Storage path, validate two scheduled cycles, and capture operational observations before production hardening.

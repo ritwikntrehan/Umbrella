@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import type { IngestionRun, RawAsset, Source, SourceCheck } from "@umbrella/core";
+import { resolveLocalArtifactDataDir, type IngestionRun, type RawAsset, type Source, type SourceCheck } from "@umbrella/core";
 import type { NormalizedRecord } from "@umbrella/source-adapters";
 import type { DeterministicChangeEvent } from "../runners/change-detection-runner.js";
 import type { GrantsBulletinReadyArtifact } from "../runners/grants-bulletin-assembler.js";
@@ -81,7 +81,7 @@ async function readLatestBySuffix<T>(directoryPath: string, suffix: string): Pro
 }
 
 function getDataRootDir(): string {
-  return process.env.UMBRELLA_DATA_DIR ?? join(process.cwd(), "data", "grants-pilot");
+  return resolveLocalArtifactDataDir();
 }
 
 export async function createLocalArtifactStore(): Promise<ArtifactStore> {

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { resolveLocalArtifactDataDir } from "@umbrella/core";
 
 interface ArtifactEnvelope<T> {
   sourceId: string;
@@ -8,7 +9,7 @@ interface ArtifactEnvelope<T> {
 }
 
 export function getDataRootDir(): string {
-  return process.env.UMBRELLA_DATA_DIR ?? join(process.cwd(), "data", "grants-pilot");
+  return resolveLocalArtifactDataDir();
 }
 
 export function parseArtifactEnvelope<T>(path: string): T | null {
