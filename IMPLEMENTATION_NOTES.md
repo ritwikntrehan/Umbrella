@@ -104,7 +104,7 @@ Focused tests were added for:
 
 ## Deferred (unchanged by this step)
 
-- GCP deployment
+- production-grade GCP deployment execution (staging prep docs/scripts now in-repo)
 - search
 - archive system
 - publish/distribution workflow
@@ -114,4 +114,32 @@ Focused tests were added for:
 
 ## Next likely step
 
-Add an optional LLM-backed umbrella synthesis mode behind the existing umbrella instruction contract, while preserving deterministic fallback and provenance guarantees.
+Execute the first hosted GCP staging deployment using the runbook, validate manual and scheduled Cloud Run job cycles, and record operational learnings before production-focused hardening.
+
+
+## Staging deployment preparation update (GCP Cloud Run-first)
+
+A narrow staging deployment prep layer has been added without revisiting prior architecture decisions.
+
+### Added in this phase
+
+- concrete plan: `deploy/staging/GCP_STAGING_PLAN.md`
+- bring-up runbook: `deploy/staging/GCP_STAGING_RUNBOOK.md`
+- staging env template: `deploy/staging/gcp/env.staging.example`
+- deploy helpers for Cloud Run service/job and scheduler setup in `scripts/staging/gcp/*.sh`
+
+### Runtime mapping now documented explicitly
+
+- `apps/web` -> Cloud Run service
+- `apps/jobs` -> Cloud Run Job (run-to-completion)
+- staged artifacts (`raw/clean/features/published`) -> Cloud Storage bucket + prefix
+- scheduled multi-channel cycle + umbrella synthesis -> Cloud Scheduler invoking Cloud Run Job
+
+### Minimal storage/config seam added
+
+A small shared storage config resolver now exists in `@umbrella/core`:
+
+- `resolveLocalArtifactDataDir()` preserves existing local behavior
+- optional staging config keys (`UMBRELLA_ARTIFACT_STORAGE_MODE`, `UMBRELLA_ARTIFACT_LOCAL_DIR`, `UMBRELLA_GCS_ARTIFACT_BUCKET`, `UMBRELLA_GCS_ARTIFACT_PREFIX`) are recognized for deployment alignment
+
+This is intentionally not a full storage backend rewrite.
